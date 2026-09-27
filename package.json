@@ -1,0 +1,17 @@
+{
+  "name": "bioquimica-nutricional",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Simulador conversacional educativo de Bioquímica aplicada a la Nutrición",
+  "packageManager": "pnpm@9.15.0",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "dev": "pnpm --parallel --filter @bioquimica/web --filter @bioquimica/api dev",
+    "build": "pnpm --filter @bioquimica/web build && pnpm --filter @bioquimica/api build",
+    "test": "pnpm --filter @bioquimica/api test",
+    "check": "pnpm build && pnpm test"
+  }
+}
+

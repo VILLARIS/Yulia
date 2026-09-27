@@ -1,0 +1,267 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    color-scheme: light;
+    font-synthesis: none;
+    text-rendering: optimizeLegibility;
+  }
+
+  * {
+    @apply border-slate-200;
+  }
+
+  html {
+    scroll-behavior: smooth;
+  }
+
+  body {
+    @apply m-0 min-w-80 bg-canvas font-sans text-base antialiased;
+  }
+
+  button, a, input, textarea, select {
+    @apply focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2;
+  }
+}
+
+@layer components {
+  .skip-link {
+    @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition-transform focus:translate-y-0;
+  }
+
+  /*
+   * Ancho de contenido compartido por la barra de navegación y el hero.
+   *
+   * El hero fija sus limites en `.hero-stage` (`max-w-[1600px]` mas
+   * `px-5 sm:px-8 lg:px-10`). Se repiten aqui los mismos tres escalones de
+   * relleno, no solo el ultimo: si la barra se quedase en `px-5` hasta `lg`,
+   * entre 640 y 1023 px el hero entraria 32 px y la barra 20 px, y la marca
+   * dejaria de caer en vertical con el texto.
+   */
+  .site-container {
+    @apply mx-auto w-full max-w-[1600px] px-5 sm:px-8 lg:px-10;
+  }
+
+  .nav-link {
+    @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-blue-50/70 hover:text-navy;
+  }
+
+  /*
+   * Estado activo: fondo azul muy suave y texto azul, con el peso reforzado
+   * para que se distinga sin necesidad de un borde. `.nav-link-active` se
+   * aplica junto a `.nav-link`, y ambas tienen la misma especificidad, asi que
+   * el orden de esta hoja es lo que hace que el fondo activo prevalezca.
+   */
+  .nav-link-active {
+    @apply bg-blue-50 font-semibold text-action hover:bg-blue-50 hover:text-action;
+  }
+
+  .button-primary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg bg-action px-5 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-800;
+  }
+
+  .button-secondary {
+    @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border border-slate-300 bg-white px-5 py-2.5 text-sm font-semibold text-navy transition-colors hover:bg-slate-50;
+  }
+
+  .panel-card {
+    @apply rounded-panel border border-slate-200 bg-white p-5 shadow-panel sm:p-6;
+  }
+
+  .status-badge {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.08em];
+  }
+
+  .eyebrow {
+    @apply text-sm font-semibold uppercase tracking-[0.12em] text-action;
+  }
+
+  .section-title {
+    @apply mt-2 text-2xl font-semibold tracking-tight text-navy sm:text-3xl;
+  }
+
+  /*
+   * Fondo del hero de inicio. La ilustración se coloca como fondo real de la
+   * sección (`cover`, sin deformar) y los dos velos siguientes la refrenan para
+   * que el fondo quede en silencio: el primero mantiene legible la columna de
+   * texto y difumina la zona central y derecha, donde la ilustración tiene sus
+   * propios elementos decorativos; el segundo resuelve el encuentro con la
+   * sección siguiente.
+   *
+   * La prioridad de lectura es texto, Yulia, tarjeta y fondo, así que el velo
+   * se refuerza hacia la derecha en lugar de dejarlo desvanecerse: la imagen se
+   * sigue percibiendo como textura, pero deja de competir con el contenido.
+   *
+   * `isolate` crea el contexto de apilamiento, así que los velos con `-z-10` se
+   * pintan por encima del fondo de la sección y por debajo del contenido.
+   */
+  .hero-yulia {
+    @apply relative isolate overflow-hidden bg-white;
+    background-image: url('../assets/yulia/hero-background.png');
+    background-repeat: no-repeat;
+    background-position: center top;
+    background-size: cover;
+  }
+
+  .hero-yulia::before {
+    content: '';
+    @apply pointer-events-none absolute inset-0 -z-10;
+    background-image: linear-gradient(
+      100deg,
+      rgb(255 255 255 / 0.9) 0%,
+      rgb(255 255 255 / 0.82) 28%,
+      rgb(255 255 255 / 0.66) 48%,
+      rgb(255 255 255 / 0.52) 76%,
+      rgb(255 255 255 / 0.46) 100%
+    );
+  }
+
+  .hero-yulia::after {
+    content: '';
+    @apply pointer-events-none absolute inset-x-0 bottom-0 -z-10 h-1/3 bg-gradient-to-t from-canvas to-transparent;
+  }
+
+  /*
+   * Composición del hero.
+   *
+   * Móvil: una columna con el orden pedido (texto, Yulia, tarjeta, métricas).
+   * Tablet: dos columnas, texto y métricas a la izquierda, Yulia y tarjeta a la
+   * derecha, todo en flujo normal para que la ilustración nunca desborde.
+   *
+   * Escritorio (>=1280px): texto, Yulia y tarjeta comparten una fila. El ancho
+   * del texto y el de la tarjeta se declaran como variables, y Yulia se coloca
+   * de forma absoluta centrada en el hueco que queda entre ambos. Al limitar su
+   * ancho a ese hueco, la separación con el texto y con la tarjeta queda
+   * garantizada por la propia fórmula: no depende de ajustarla a ojo, y su
+   * tamaño deja de estar condicionado por el reparto de fracciones de un grid
+   * convencional, que es lo que antes la dejaba demasiado pequeña.
+   */
+  .hero-stage {
+    @apply relative grid w-full grid-cols-1 gap-y-9 px-5 py-10 sm:px-8 sm:py-12 lg:grid-cols-2 lg:px-10 lg:py-12;
+  }
+
+  /* Medida máxima del texto para que las líneas no se estiren de más. */
+  .hero-copy { @apply min-w-0 max-w-[520px]; }
+
+  .hero-figure { @apply mx-auto w-[min(86vw,360px)] justify-self-center lg:max-w-[360px]; }
+
+  .hero-figure img { @apply h-auto w-full object-contain object-bottom; }
+
+  @media (min-width: 1024px) and (max-width: 1279.98px) {
+    .hero-copy { grid-area: 1 / 1; }
+    .hero-figure { grid-area: 1 / 2; }
+    .hero-metrics { grid-area: 2 / 1; }
+    .hero-card { grid-area: 2 / 2; }
+  }
+
+  @media (min-width: 1280px) {
+    .hero-stage {
+      --hero-copy-width: clamp(360px, 30vw, 520px);
+      --hero-card-width: clamp(300px, 21vw, 348px);
+      --hero-figure-max: 455px;
+      /*
+       * 150px de separación total, 75 a cada lado. Es el dato que hace que
+       * Yulia no crezca cuando la tarjeta se estrecha: el hueco se reparte
+       * como aire en vez de devolverse a la ilustración.
+       */
+      --hero-figure-gap: 150px;
+      grid-template-columns: var(--hero-copy-width) minmax(0, 1fr) var(--hero-card-width);
+      column-gap: 0;
+      row-gap: 0;
+      align-content: center;
+      min-height: clamp(520px, calc(100vh - 5rem), 600px);
+      padding-top: 2.5rem;
+      padding-bottom: 0;
+    }
+
+    .hero-copy { grid-area: 1 / 1; max-width: none; }
+
+    .hero-metrics { grid-area: 2 / 1; margin-top: 2.5rem; }
+
+    .hero-card { grid-area: 1 / 3 / 3 / 3; align-self: center; }
+
+    /*
+     * Yulia se ancla al borde inferior del hero y se centra en el hueco entre
+     * el texto y la tarjeta. `bottom: 0` se resuelve contra el relleno del
+     * contenedor, que coincide con el borde inferior de la sección, de modo que
+     * la bata queda cortada por el propio hero y parece entrar en la página.
+     */
+    .hero-figure {
+      position: absolute;
+      bottom: 0;
+      left: calc(
+        var(--hero-copy-width) + (100% - var(--hero-copy-width) - var(--hero-card-width)) / 2
+      );
+      width: min(
+        var(--hero-figure-max),
+        calc(100% - var(--hero-copy-width) - var(--hero-card-width) - var(--hero-figure-gap))
+      );
+      max-width: none;
+      margin: 0;
+      transform: translateX(-50%);
+    }
+  }
+
+  /*
+   * CTA secundario del hero. `.button-secondary` es una clase compartida, así
+   * que el ajuste se acota con un selector de clase y elemento más específico
+   * en lugar de redefinir la utilidad para toda la aplicación. El peso baja
+   * para que el botón principal sea el único punto de foco del bloque.
+   */
+  .hero-cta .button-secondary {
+    @apply min-h-11 border-slate-200 bg-white/70 px-5 font-medium text-slate-600 hover:border-slate-300 hover:bg-white hover:text-navy;
+  }
+
+  /*
+   * Tarjeta informativa. `Card` incorpora `shadow-panel` en sus clases base, y
+   * esa utilidad se emite despues que los componentes, de modo que un selector
+   * de clase sola (0,1,0) perderia y la sombra mas discreta no se aplicaria.
+   * Anadir el tipo de elemento sube la especificidad a (0,1,1) y resuelve el
+   * conflicto sin `!important` y sin tocar el componente compartido.
+   *
+   * El selector del cuerpo es mas especifico que las utilidades del `CardBody`,
+   * asi que el relleno se reduce igual sin tocar ese componente.
+   */
+  div.hero-card {
+    box-shadow:
+      0 1px 2px rgb(15 41 66 / 0.05),
+      0 8px 22px rgb(15 41 66 / 0.04);
+  }
+
+  .hero-card > div { @apply px-5 py-5; }
+
+  /* Etiqueta de marca del hero: azul con un punto verde de acento. */
+  .brand-badge {
+    @apply inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3.5 py-1.5 text-sm font-semibold text-navy;
+  }
+
+  .brand-badge::before {
+    content: '';
+    @apply size-2 shrink-0 rounded-full bg-brand;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/*
+ * La ilustración del hero no lleva ninguna esquina redondeada: la imagen ya
+ * tiene fondo transparente y el radio solo añadiría un recorte.
+ *
+ * `YuliaAvatar` aplica `rounded-lg` en su clase base, y dentro de la escala de
+ * `border-radius` de Tailwind `none` se emite antes que `lg`, así que pasar
+ * `rounded-none` desde el componente no llegaría a ganar. Esta regla se
+ * declara fuera de `@layer` y con un selector de clase y elemento, que es más
+ * específico que la utilidad, de modo que la anulación no depende de tocar el
+ * componente compartido ni de recurrir a `!important`.
+ */
+.hero-figure img {
+  border-radius: 0;
+}
+
