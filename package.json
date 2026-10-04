@@ -9,9 +9,9 @@
   },
   "scripts": {
     "dev": "pnpm --parallel --filter @bioquimica/web --filter @bioquimica/api dev",
+    "db:migrate": "pnpm --filter @bioquimica/api db:migrate",
     "build": "pnpm --filter @bioquimica/web build && pnpm --filter @bioquimica/api build",
     "test": "pnpm --filter @bioquimica/api test",
-    "check": "pnpm build && pnpm test"
+    "check": "pnpm build && pnpm test && pnpm --filter @bioquimica/web test:smoke && pnpm --filter @bioquimica/web check:imports"
   }
 }
-

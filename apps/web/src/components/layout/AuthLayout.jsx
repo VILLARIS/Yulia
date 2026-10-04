@@ -1,74 +1,50 @@
 import { Link } from 'react-router-dom';
-import { ArrowLeft, UserCog, UserRound } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { APP_ROUTES } from '@bioquimica/shared/routes';
 import { Message } from '../ui/Message';
+import yuliaLogo from '../../assets/yulia/logo-yulia.jpeg';
+import loginImage from '../../assets/yulia/login/login.png';
+import registerImage from '../../assets/yulia/login/register.png';
 
-/**
- * Cascarón de las pantallas de acceso: columna de presentación y columna de
- * formulario. Reutilizable por inicio de sesión, registro y recuperación.
- */
-export function AuthLayout({ title, subtitle, children, footer }) {
+/** Composición compartida por acceso y registro; el formulario queda sobre blanco. */
+export function AuthLayout({ mode = 'login', title, subtitle, children, footer }) {
+  const isRegister = mode === 'register';
   return (
-    <div className="mx-auto grid w-full max-w-6xl gap-10 px-5 py-10 lg:grid-cols-[1fr_1.05fr] lg:items-start lg:gap-16 lg:py-16">
-      <div className="max-w-xl">
-        <Link
-          to={APP_ROUTES.home}
-          className="inline-flex min-h-11 items-center gap-2 rounded-lg text-sm font-medium text-slate-600 underline-offset-4 transition-colors hover:text-action hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
-        >
-          <ArrowLeft size={16} aria-hidden="true" />
-          Volver al inicio
-        </Link>
-
-        <h1 className="mt-6 text-3xl font-semibold tracking-tight text-navy lg:text-4xl">{title}</h1>
-        {subtitle ? <p className="mt-3 text-base leading-7 text-slate-600">{subtitle}</p> : null}
-
-        <div className="mt-8 rounded-panel border border-amber-200 bg-amber-50/70 px-4 py-4">
-          <p className="text-sm font-semibold text-warning">Autenticación no implementada</p>
-          <p className="mt-1 text-sm leading-6 text-slate-700">
-            Esta pantalla valida el formulario en el navegador, pero no existe servicio de
-            identidad en esta versión. No se envían credenciales, no se generan tokens y no se
-            almacena nada. Puedes explorar las interfaces desde los accesos de abajo.
-          </p>
-        </div>
-
-        <div className="mt-6 grid gap-3 sm:grid-cols-2">
-          <DemoAccessLink
-            to={APP_ROUTES.studentDashboard}
-            icon={UserRound}
-            title="Vista estudiante"
-            description="Panel, actividades y simulador"
-          />
-          <DemoAccessLink
-            to={APP_ROUTES.teacherDashboard}
-            icon={UserCog}
-            title="Vista docente"
-            description="Actividades, prompt y seguimiento"
-          />
-        </div>
+    <div className="auth-page grid min-h-screen w-full bg-white md:grid-cols-[40%_60%] lg:grid-cols-2">
+      <div className="relative hidden min-h-screen overflow-hidden bg-[#f4f9ff] md:block">
+        <img
+          src={isRegister ? registerImage : loginImage}
+          alt={isRegister ? 'Yulia te invita a comenzar con cursos y simulaciones' : 'Yulia te da la bienvenida para continuar aprendiendo'}
+          className="auth-visual-image absolute inset-0 size-full object-cover object-[30%_center] lg:object-top"
+        />
       </div>
-
-      <div className="w-full">
-        <div className="rounded-panel border border-slate-200 bg-white p-6 shadow-panel sm:p-8">
+      <div className="flex min-h-screen min-w-0 flex-col bg-white">
+        <div className="flex flex-1 items-center justify-center px-5 py-8 sm:px-8 md:px-8 lg:px-12">
+          <div className="w-full max-w-[460px]">
+            <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
+              <Link to={APP_ROUTES.home} className="inline-flex items-center gap-2.5 rounded-lg">
+                <img src={yuliaLogo} alt="" className="size-9 rounded-lg border border-slate-200 object-cover" />
+                <span className="flex flex-col leading-tight">
+                  <strong className="text-base tracking-[0.08em] text-navy">YULIA</strong>
+                  <small className="text-[9px] font-semibold tracking-[0.08em] text-slate-500">BIOQUÍMICA NUTRICIONAL</small>
+                </span>
+              </Link>
+              <Link to={APP_ROUTES.home} className="auth-return inline-flex items-center gap-1.5 text-sm text-slate-600">
+                <ArrowLeft size={15} aria-hidden="true" />
+                Volver al inicio
+              </Link>
+            </div>
+            <h1 className="mt-9 text-3xl font-semibold tracking-tight text-navy sm:text-[2.15rem]">{title}</h1>
+            {subtitle ? <p className="mt-2 text-base leading-7 text-slate-600">{subtitle}</p> : null}
+            <div className="mt-8">
           {children}
+            </div>
+            {footer ? <div className="mt-6 text-center text-sm text-slate-600">{footer}</div> : null}
+          </div>
         </div>
-        {footer ? <div className="mt-6 text-center text-sm text-slate-600">{footer}</div> : null}
+        <p className="px-5 pb-5 text-center text-xs text-slate-500">© 2026 Yulia Bioquímica Nutricional.</p>
       </div>
     </div>
-  );
-}
-
-function DemoAccessLink({ to, icon: Icon, title, description }) {
-  return (
-    <Link
-      to={to}
-      className="flex min-h-20 items-start gap-3 rounded-lg border border-slate-200 bg-white p-4 transition-colors hover:border-action hover:bg-blue-50/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-action focus-visible:ring-offset-2"
-    >
-      <Icon size={19} aria-hidden="true" className="mt-0.5 shrink-0 text-action" />
-      <span className="min-w-0">
-        <span className="block text-sm font-semibold text-navy">{title}</span>
-        <span className="mt-0.5 block text-xs leading-5 text-slate-600">{description}</span>
-      </span>
-    </Link>
   );
 }
 

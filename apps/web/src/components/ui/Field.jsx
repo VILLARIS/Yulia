@@ -57,7 +57,7 @@ const CONTROL_ERROR = 'border-red-400 bg-red-50/40';
  * relleno para que el texto no quede debajo; el icono es `aria-hidden` y el
  * nombre accesible lo aporta siempre la etiqueta.
  */
-export function TextField({ label, hint, error, required, icon: Icon, ...rest }) {
+export function TextField({ label, hint, error, required, icon: Icon, endAction, ...rest }) {
   const id = useId();
   return (
     <FieldShell id={id} label={label} hint={hint} error={error} required={required}>
@@ -68,19 +68,20 @@ export function TextField({ label, hint, error, required, icon: Icon, ...rest })
             type="text"
             aria-describedby={describedBy}
             aria-invalid={invalid || undefined}
-            className={`${CONTROL_BASE} ${Icon ? 'pl-10' : ''} ${invalid ? CONTROL_ERROR : CONTROL_OK}`}
+            className={`${CONTROL_BASE} ${Icon ? 'pl-10' : ''} ${endAction ? 'pr-12' : ''} ${invalid ? CONTROL_ERROR : CONTROL_OK}`}
             {...rest}
           />
         );
-        if (!Icon) return input;
+        if (!Icon && !endAction) return input;
         return (
           <div className="relative">
-            <Icon
+            {Icon ? <Icon
               size={17}
               aria-hidden="true"
               className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
-            />
+            /> : null}
             {input}
+            {endAction ? <div className="absolute inset-y-0 right-2 flex items-center">{endAction}</div> : null}
           </div>
         );
       }}

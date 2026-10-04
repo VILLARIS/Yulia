@@ -1,57 +1,34 @@
-# Arquitectura de la plataforma
+# Arquitectura del MVP
 
-## Principios
+## Flujo activo
 
-- Separación estricta entre interfaz, reglas académicas, integración de IA y persistencia.
-- El backend es la única autoridad para autenticación, autorización, avance de etapas y calificación.
-- Las respuestas del estudiante se consideran contenido no confiable, nunca instrucciones del sistema.
-- Los eventos de supervisión se almacenan de forma independiente de la rúbrica académica.
-- Los casos clínicos son datos configurables; agregar un caso no requiere modificar la lógica visual.
+Navegador React/Vite → `apps/web/src/mvp/api.js` → API Express → PostgreSQL.
 
-## Capas
+La API identifica al usuario mediante una cookie `HttpOnly` firmada. La web restaura la sesión con `GET /api/auth/me` y protege las rutas por rol. La API vuelve a verificar el rol y la propiedad en cada operación; los controles del navegador no sustituyen esos filtros.
 
-1. **Web**: navegación, accesibilidad, estados de carga/error y experiencia de simulación.
-2. **API**: autenticación, autorización por rol, sesiones, conversación, evaluación y supervisión.
-3. **Dominio compartido**: etapas, rutas y definición de casos clínicos.
-4. **Persistencia**: PostgreSQL con migraciones versionadas y relaciones explícitas.
-5. **Proveedores**: OpenAI y almacenamiento privado de grabaciones, encapsulados detrás de servicios.
+## Datos
 
-## Límites de seguridad
+- `users`: identidad, contraseña derivada con `scrypt`, rol y fecha de creación.
+- `courses`: curso, docente propietario, publicación y fechas.
+- `clinical_cases`: simulaciones del MVP; `course_id` las vincula a un curso. Los campos `clinical_situation`, `academic_challenge` y `tutor_instructions` corresponden a escenario, objetivo e instrucciones.
+- `enrollments`: inscripción única por estudiante y curso.
+- `simulation_sessions`: una conversación activa por estudiante y simulación (índice de la migración `003`).
+- `conversation_messages`: turnos persistentes. `model_metadata` conserva los pasos necesarios para reenviar el contexto a Interactions API.
+- `schema_migrations`: versiones SQL aplicadas.
 
-- El navegador nunca envía instrucciones del sistema ni decide una calificación.
-- La API deriva el usuario autenticado del token, no de un identificador libre del cuerpo.
-- Los accesos docentes se filtran por rol y ámbito institucional.
-- La grabación permanece desactivada por defecto y exige consentimiento del navegador.
-- La telemetría de supervisión informa; no prueba plagio ni reduce notas automáticamente.
+La migración inicial contiene también tablas de evaluación, seguimiento y grabaciones; siguen sin uso. Las actividades anteriores sin `course_id` tampoco se muestran en las rutas activas. La API key de cada estudiante permanece solo en `sessionStorage` de su pestaña y viaja al backend por petición. No se guarda en PostgreSQL.
 
-## Rutas
+## Rutas web activas
 
-Las rutas se declaran una sola vez en `packages/shared/src/routes.js` (`APP_ROUTES`) y tanto el
-enrutado de la aplicación como la navegación se derivan de ese contrato mediante `buildPath()`.
-La tabla siguiente refleja las rutas realmente implementadas en el frontend.
+- `/`, `/acceso`, `/registro` son públicas.
+- `/docente` lista cursos propios; `/docente/cursos/nuevo`, `/docente/cursos/:courseId` y `/docente/cursos/:courseId/editar` permiten crearlos y editarlos.
+- `/docente/cursos/:courseId/simulaciones/nueva` y `/docente/simulaciones/:simulationId/editar` gestionan simulaciones propias.
+- `/estudiante` lista cursos publicados; `/estudiante/cursos/:courseId` gestiona la inscripción y muestra simulaciones publicadas; `/estudiante/simulaciones/:simulationId` muestra el caso y el chat.
 
-| Ruta | Propósito | Espacio |
-| --- | --- | --- |
-| `/` | Inicio de la plataforma | Público |
-| `/acceso` | Inicio de sesión (sin autenticación real) | Público |
-| `/registro` | Creación de cuenta (sin servicio de registro) | Público |
-| `/recuperar-contrasena` | Recuperación de contraseña (sin envío de correo) | Público |
-| `/simulaciones` | Catálogo de actividades | Público |
-| `/simulaciones/:activityId` | Ficha del escenario | Público |
-| `/simulaciones/:activityId/simular` | Interfaz de conversación | Público |
-| `/resultados/:activityId` | Resultados cualitativos de muestra | Estudiante |
-| `/estudiante` | Mi aprendizaje | Estudiante |
-| `/estudiante/actividades` | Actividades de la estudiante | Estudiante |
-| `/estudiante/actividades/:activityId` | Detalle de actividad | Estudiante |
-| `/estudiante/perfil` | Perfil de la estudiante | Estudiante |
-| `/docente` | Panel docente | Docente |
-| `/docente/actividades` | Gestión de actividades | Docente |
-| `/docente/actividades/nueva` | Editor de actividad | Docente |
-| `/docente/actividades/:activityId/editar` | Edición de actividad e instrucciones | Docente |
-| `/docente/estudiantes` | Listado de estudiantes de muestra | Docente |
-| `/docente/seguimiento` | Seguimiento de sesión de muestra | Docente |
-| `/docente/resultados` | Resultados del grupo | Docente |
+La integración usa el SDK `@google/genai` y Interactions API con `store: false`. Cada petición reconstruye el historial desde PostgreSQL e incluye las instrucciones actuales del tutor. El modelo se configura con `GEMINI_MODEL`.
 
-Cualquier ruta no incluida en este contrato resuelve en la pantalla de error 404. No existen rutas
-de historial, de calificación ni de gestión de credenciales de proveedores.
+El frontend antiguo de demostración y el contrato `packages/shared/src/routes.js` permanecen en el repositorio, pero el enrutado activo se define en `apps/web/src/App.jsx`. Deben revisarse antes de reutilizarlos en fases posteriores.
 
+## Fuera de alcance
+
+Evaluación, rúbricas, supervisión, grabaciones, recuperación de contraseña y administración institucional.

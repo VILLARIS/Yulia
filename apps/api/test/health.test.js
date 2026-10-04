@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { createApp } from '../src/app.js';
 
-test('GET /api/health responde con el estado de la Fase 1', async () => {
+test('GET /api/health responde con el estado del MVP', async () => {
   const server = createApp().listen(0);
   await new Promise((resolve) => server.once('listening', resolve));
   try {
@@ -11,9 +11,8 @@ test('GET /api/health responde con el estado de la Fase 1', async () => {
     const body = await response.json();
     assert.equal(response.status, 200);
     assert.equal(body.status, 'ok');
-    assert.equal(body.phase, 1);
+    assert.equal(body.phase, 2);
   } finally {
     await new Promise((resolve, reject) => server.close((error) => error ? reject(error) : resolve()));
   }
 });
-

@@ -9,9 +9,8 @@ const envSchema = z.object({
   WEB_ORIGIN: z.string().url().default('http://localhost:5173'),
   DATABASE_URL: z.string().min(1).optional(),
   DATABASE_SSL: optionalBoolean,
-  OPENAI_API_KEY: z.string().min(1).optional(),
-  OPENAI_MODEL: z.string().default('gpt-4.1-mini'),
-  RECORDINGS_ENABLED: optionalBoolean,
+  JWT_SECRET: z.string().min(32).default('development-only-change-this-secret-before-deploying'),
+  GEMINI_MODEL: z.string().min(1).default('gemini-3.5-flash-lite'),
 });
 
 const parsed = envSchema.safeParse(process.env);
@@ -21,4 +20,3 @@ if (!parsed.success) {
 }
 
 export const env = parsed.data;
-
