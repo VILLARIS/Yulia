@@ -13,7 +13,11 @@ export function createApp(options = {}) {
   app.use(express.json({ limit: '32kb' }));
 
   app.get('/api/health', (_request, response) => {
-    response.json({ status: 'ok', service: 'bioquimica-nutricional-api', phase: 2 });
+    response.json({
+      status: 'ok',
+      service: 'bioquimica-nutricional-api',
+      phase: 2,
+    });
   });
 
   app.use('/api', mvp);
@@ -22,10 +26,15 @@ export function createApp(options = {}) {
   app.use('/api', (_request, response) => {
     response.status(404).json({ error: 'Recurso no encontrado' });
   });
+
   app.use((_error, _request, response, _next) => {
-    // Un error externo puede incluir el cuerpo de la petición, incluida la API key.
     console.error('Error interno del servidor');
     response.status(500).json({ error: 'Error interno del servidor' });
   });
+
   return app;
 }
+
+const app = createApp();
+
+export default app;
