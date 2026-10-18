@@ -1,39 +1,64 @@
 import { useEffect } from 'react';
-import { ArrowRight, Atom, BookOpen, FlaskConical, Leaf, MessageCircle, RotateCcw } from 'lucide-react';
+import { ArrowRight, BookOpen, Check, Clock, FlaskConical, GraduationCap, Leaf, MessageCircle, Play, RotateCcw, Send } from 'lucide-react';
 import { useLocation } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import heroBackground from '../assets/yulia/home/heroBackground.png';
 import studentImage from '../assets/yulia/home/studentImage.png';
 import teacherImage from '../assets/yulia/home/teacherImage.png';
+import yuliaAvatar from '../assets/yulia/avatar-yulia.png';
 import { useAuth } from './AuthContext';
 
-const benefits = [
-  { icon: BookOpen, title: 'Cursos creados por docentes', description: 'Contenido estructurado por especialistas.', color: 'bg-blue-50 text-action' },
-  { icon: MessageCircle, title: 'Simulaciones conversacionales', description: 'Casos interactivos guiados por IA.', color: 'bg-emerald-50 text-brand-ink' },
-  { icon: FlaskConical, title: 'Aprendizaje práctico', description: 'Aplica conocimientos en escenarios reales.', color: 'bg-blue-50 text-action' },
-  { icon: RotateCcw, title: 'Progreso continuo', description: 'Retoma tus simulaciones y sigue avanzando.', color: 'bg-emerald-50 text-brand-ink' },
+const studentSteps = ['Crea tu cuenta', 'Inscríbete en un curso', 'Entra a una simulación', 'Conversa con el tutor IA'];
+const teacherSteps = ['Crea un curso', 'Diseña simulaciones', 'Publica videos cortos', 'Acompaña el progreso'];
+
+const teacherBenefits = ['Crear cursos', 'Diseñar simulaciones', 'Compartir videos', 'Revisar participación y progreso'];
+
+const videos = [
+  { title: '¿Qué son los macronutrientes?', duration: '3:24', tone: 'green', icon: BookOpen },
+  { title: 'Cómo leer una etiqueta nutricional', duration: '4:10', tone: 'blue', icon: FlaskConical },
+  { title: 'Vitaminas hidrosolubles y liposolubles', duration: '5:02', tone: 'ivory', icon: Leaf },
+  { title: 'Triglicéridos: lo esencial', duration: '2:48', tone: 'green', icon: MessageCircle },
 ];
 
-const studentSteps = ['Crea tu cuenta', 'Inscríbete en un curso', 'Entra a una simulación', 'Conversa con el tutor IA'];
-const teacherSteps = ['Crea un curso', 'Diseña una simulación', 'Publica para tus estudiantes'];
+const conversation = [
+  { role: 'tutor', text: 'Hola, soy Yulia. Vamos con un caso: un paciente llega con fatiga y palidez. ¿Qué analizarías primero?' },
+  { role: 'student', text: 'Revisaría sus niveles de hierro y de hemoglobina.' },
+  { role: 'tutor', text: 'Buen enfoque. ¿Por qué el hierro es clave para la hemoglobina?' },
+];
 
-function JourneyPanel({ title, description, steps, image, imageAlt, tone }) {
-  const student = tone === 'student';
-  return <article className={`home-journey relative isolate flex min-h-[355px] flex-col overflow-hidden rounded-[1.5rem] border p-6 sm:flex-row sm:p-7 lg:p-7 xl:p-8 ${student ? 'border-blue-100 bg-[#edf6ff]' : 'border-emerald-100 bg-[#eff9f2]'}`}>
-    <div className={`pointer-events-none absolute -bottom-28 -right-16 size-96 rounded-full border opacity-60 ${student ? 'border-blue-200 bg-blue-100/35' : 'border-emerald-200 bg-emerald-100/35'}`} aria-hidden="true" />
-    <div className="relative z-10 flex w-full flex-col sm:max-w-[64%] lg:max-w-[67%] xl:max-w-[62%]">
-      <span className={`mb-3 inline-flex self-start rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em] ${student ? 'border-blue-200 bg-white/80 text-action' : 'border-emerald-200 bg-white/80 text-brand-ink'}`}>{student ? 'Estudiante' : 'Docente'}</span>
-      <h3 className="text-2xl font-semibold tracking-tight text-navy sm:text-[1.7rem]">{title}</h3>
-      <p className="mt-2 max-w-sm text-sm leading-6 text-slate-700">{description}</p>
-      <ol className={`home-steps relative mt-5 flex flex-col gap-2 ${student ? 'home-steps-blue' : 'home-steps-green'}`} aria-label={`Pasos ${student ? 'para estudiantes' : 'para docentes'}`}>
-        {steps.map((step, index) => <li key={step} className="relative z-10 flex items-center gap-3 text-sm font-medium text-navy">
-          <span className={`flex size-8 shrink-0 items-center justify-center rounded-full border bg-white text-[11px] font-bold shadow-sm ${student ? 'border-blue-200 text-action' : 'border-emerald-200 text-brand-ink'}`}>{String(index + 1).padStart(2, '0')}</span>
-          <span>{step}</span>
-        </li>)}
-      </ol>
+function SectionHeading({ eyebrow, title, description }) {
+  return (
+    <div className="mx-auto max-w-2xl text-center">
+      {eyebrow ? <p className="home-eyebrow">{eyebrow}</p> : null}
+      <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-navy sm:text-[2.05rem] lg:text-[2.3rem]">{title}</h2>
+      {description ? <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">{description}</p> : null}
     </div>
-    <img src={image} alt={imageAlt} loading="lazy" className="pointer-events-none relative z-0 -mb-6 -mr-6 mt-3 h-[185px] w-auto max-w-[70%] self-end object-contain object-bottom drop-shadow-[0_12px_12px_rgba(15,41,66,0.12)] sm:absolute sm:bottom-0 sm:right-[-3%] sm:m-0 sm:h-[87%] sm:max-w-[46%] lg:right-[-5%] lg:max-w-[44%] xl:right-[-2%] xl:max-w-[46%]" />
-  </article>;
+  );
+}
+
+function ExperiencePanel({ tone, title, steps, image, imageAlt, ctaTo, ctaLabel }) {
+  return (
+    <article className={`home-experience home-experience-${tone}`}>
+      <span className="home-experience-glow" aria-hidden="true" />
+      <div className="home-experience-body">
+        <span className={`home-tag home-tag-${tone}`}>
+          <GraduationCap size={14} aria-hidden="true" />
+          {tone === 'student' ? 'Estudiante' : 'Docente'}
+        </span>
+        <h3 className="home-experience-title">{title}</h3>
+        <ol className={`home-path home-path-${tone}`} aria-label={`Pasos para ${title.toLowerCase()}`}>
+          {steps.map((step, index) => (
+            <li key={step}>
+              <span className="home-path-num">{String(index + 1).padStart(2, '0')}</span>
+              <span>{step}</span>
+            </li>
+          ))}
+        </ol>
+        <Button to={ctaTo} size="md" className={`mt-7 self-start ${tone === 'teacher' ? 'home-cta-green' : ''}`}>{ctaLabel}</Button>
+      </div>
+      <img src={image} alt={imageAlt} loading="lazy" className="home-experience-img" />
+    </article>
+  );
 }
 
 export function HomePage() {
@@ -47,51 +72,196 @@ export function HomePage() {
   }, [location.hash]);
 
   return <>
-    <section className="home-hero relative overflow-hidden bg-[#f8fbfe] lg:min-h-[560px]">
-      <div className="site-container py-11 sm:py-14 lg:flex lg:min-h-[560px] lg:items-center lg:py-12">
-        <div className="home-hero-copy relative z-10 max-w-[620px] lg:w-[50%] lg:max-w-none lg:pr-5">
-          <p className="eyebrow flex items-center gap-3 text-xs tracking-[0.08em] sm:text-sm sm:tracking-[0.12em]"><span className="h-px w-7 shrink-0 bg-brand" aria-hidden="true" />Bioquímica aplicada a la nutrición</p>
-          <h1 aria-label="Aprende mediante casos y simulaciones" className="mt-5 text-[2.7rem] font-bold leading-[1.1] tracking-tight text-navy sm:text-5xl lg:text-[3.3rem] xl:text-[3.65rem] 2xl:text-[4rem]">
-            Aprende mediante<br className="hidden sm:block" /> <span className="text-brand-ink">casos y simulaciones</span>
+    <section className="home-hero">
+      <div className="site-container home-hero-stage">
+        <div className="home-hero-copy">
+          <p className="eyebrow text-xs tracking-[0.14em] sm:text-[0.8125rem]">Aprendizaje aplicado</p>
+          <h1 aria-label="Aprende bromatología y nutrición a través de casos reales" className="mt-4 text-[2.5rem] font-bold leading-[1.08] tracking-tight text-navy sm:text-[3rem] lg:text-[3.3rem] xl:text-[3.55rem]">
+            Aprende bromatología y nutrición<br className="hidden sm:block" /> <span className="text-brand-ink">a través de casos reales</span>
           </h1>
-          <p className="mt-6 max-w-[510px] text-base leading-7 text-slate-700 sm:text-lg sm:leading-8">Practica el razonamiento bioquímico y nutricional mediante escenarios guiados por un tutor inteligente.</p>
+          <p className="mt-6 max-w-[520px] text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">Cursos, simulaciones conversacionales y contenido breve para aprender aplicando.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-            <Button to="/acceso" size="lg" icon={ArrowRight} iconPosition="end" className="home-cta-primary w-full sm:w-auto">Comenzar</Button>
-            <Button to={coursePath} variant="secondary" size="lg" icon={ArrowRight} iconPosition="end" className="home-cta-secondary w-full sm:w-auto">Explorar cursos</Button>
+            <Button to={coursePath} size="lg" className="home-cta-primary w-full sm:w-auto">Explorar cursos</Button>
+            <Button to="/acceso" variant="secondary" size="lg" className="home-cta-secondary w-full sm:w-auto">Ver simulaciones</Button>
+          </div>
+          <ul className="home-hero-points" aria-label="Ventajas de la plataforma">
+            <li>Contenido creado por especialistas</li>
+            <li>Simulaciones guiadas</li>
+            <li>Aprendizaje práctico</li>
+          </ul>
+        </div>
+      </div>
+      <figure className="home-hero-media" aria-hidden="true">
+        <img src={heroBackground} alt="" />
+        <span className="home-hero-scrim" />
+      </figure>
+    </section>
+
+    <section className="home-section home-section-cream" aria-labelledby="valor-titulo">
+      <div className="site-container">
+        <SectionHeading
+          eyebrow="Una forma distinta de aprender"
+          title="Aprende haciendo, no solo leyendo"
+          description="Combina cursos, casos, simulaciones conversacionales y contenido breve en una experiencia pensada para aplicar conocimientos."
+        />
+        <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2">
+          <article className="home-bento home-bento-feature md:col-span-2 lg:col-span-7 lg:row-span-2">
+            <span className="home-bento-index" aria-hidden="true">01</span>
+            <span className="home-bento-icon home-bento-icon-green"><MessageCircle size={20} aria-hidden="true" /></span>
+            <h3 className="home-bento-title">Casos y simulaciones</h3>
+            <p className="home-bento-text">Analiza situaciones reales y desarrolla tu razonamiento paso a paso.</p>
+            <p className="home-bento-note">Preguntas, pistas y retroalimentación en cada decisión.</p>
+          </article>
+          <article className="home-bento home-bento-courses lg:col-span-5">
+            <span className="home-bento-index" aria-hidden="true">02</span>
+            <span className="home-bento-icon home-bento-icon-blue"><BookOpen size={20} aria-hidden="true" /></span>
+            <h3 className="home-bento-title">Cursos creados por docentes</h3>
+            <p className="home-bento-text">Contenido estructurado y contextualizado.</p>
+          </article>
+          <article className="home-bento home-bento-videos lg:col-span-5">
+            <span className="home-bento-index" aria-hidden="true">03</span>
+            <span className="home-bento-icon home-bento-icon-green"><Play size={20} aria-hidden="true" /></span>
+            <h3 className="home-bento-title">Videos cortos</h3>
+            <p className="home-bento-text">Conceptos clave explicados en minutos.</p>
+          </article>
+          <article className="home-bento home-bento-wide md:col-span-2 lg:col-span-12">
+            <span className="home-bento-index" aria-hidden="true">04</span>
+            <span className="home-bento-icon home-bento-icon-blue"><RotateCcw size={20} aria-hidden="true" /></span>
+            <div>
+              <h3 className="home-bento-title">Aprendizaje continuo</h3>
+              <p className="home-bento-text">Retoma tus simulaciones, revisa tus cursos y sigue avanzando.</p>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+
+    <section id="acerca" className="home-section home-section-sky scroll-mt-24" aria-labelledby="como-titulo">
+      <div className="site-container">
+        <SectionHeading
+          title="Una plataforma, dos experiencias"
+          description="Diseñada para quienes aprenden y para quienes enseñan."
+        />
+        <div className="mt-10 grid gap-5 lg:grid-cols-2">
+          <ExperiencePanel
+            tone="student"
+            title="Para estudiantes"
+            steps={studentSteps}
+            image={studentImage}
+            imageAlt="Estudiante con computadora portátil"
+            ctaTo={coursePath}
+            ctaLabel="Explorar cursos"
+          />
+          <ExperiencePanel
+            tone="teacher"
+            title="Para docentes"
+            steps={teacherSteps}
+            image={teacherImage}
+            imageAlt="Docente de bioquímica con tableta"
+            ctaTo="/registro"
+            ctaLabel="Comenzar como docente"
+          />
+        </div>
+      </div>
+    </section>
+
+    <section className="home-section home-section-mint" aria-labelledby="videos-titulo">
+      <div className="site-container">
+        <SectionHeading
+          eyebrow="Aprende en minutos"
+          title="Videos cortos para reforzar conceptos"
+          description="Contenido breve creado por la docente para aprender, repasar y descubrir nuevos temas."
+        />
+        <ul className="home-reels">
+          {videos.map(({ title, duration, tone, icon: Icon }) => (
+            <li key={title}>
+              <article className="home-reel">
+                <div className={`home-reel-thumb home-reel-${tone}`}>
+                  <Icon size={44} strokeWidth={1.25} aria-hidden="true" className="home-reel-mark opacity-30" />
+                  <span className="home-reel-play"><Play size={16} aria-hidden="true" className="translate-x-px" /></span>
+                </div>
+                <h3 className="home-reel-title">{title}</h3>
+                <p className="home-reel-meta"><Clock size={13} aria-hidden="true" />{duration}</p>
+              </article>
+            </li>
+          ))}
+        </ul>
+        <div className="mt-9 text-center">
+          <Button to="/videos" size="lg" icon={ArrowRight} iconPosition="end" className="home-cta-green home-arrow-cta">Ver todos los videos</Button>
+        </div>
+      </div>
+    </section>
+
+    <section className="home-section home-section-sky" aria-labelledby="simulacion-titulo">
+      <div className="site-container grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
+        <div>
+          <p className="home-eyebrow">Simulación interactiva</p>
+          <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-navy sm:text-[2.05rem] lg:text-[2.3rem]">Aprende conversando</h2>
+          <p className="mt-4 max-w-md text-base leading-7 text-[#42566b]">Cada simulación te guía con preguntas, pistas y retroalimentación para ayudarte a razonar.</p>
+          <Button to={coursePath} size="lg" className="mt-7">Explorar simulaciones</Button>
+        </div>
+        <div className="home-chat" aria-hidden="true">
+          {conversation.map((message, index) => {
+            const isStudent = message.role === 'student';
+            return (
+              <div key={index} className={`home-chat-row ${isStudent ? 'home-chat-row-student' : ''}`}>
+                {isStudent
+                  ? <span className="home-chat-avatar home-chat-avatar-fallback">Tú</span>
+                  : <img src={yuliaAvatar} alt="" className="home-chat-avatar home-chat-avatar-tutor" />}
+                <div className={`home-chat-bubble ${isStudent ? 'home-chat-bubble-student' : 'home-chat-bubble-tutor'}`}>
+                  {isStudent ? null : <span className="home-chat-label">Yulia · Tutora</span>}
+                  {message.text}
+                </div>
+              </div>
+            );
+          })}
+          <div className="home-chat-input">
+            <span>Escribe tu razonamiento…</span>
+            <span className="home-chat-send"><Send size={14} aria-hidden="true" /></span>
           </div>
         </div>
       </div>
-      <div className="relative h-[290px] w-full overflow-hidden sm:h-[400px] lg:absolute lg:inset-y-0 lg:right-0 lg:h-full lg:w-[58%]" aria-label="Yulia con recursos de bioquímica y nutrición">
-        <img src={heroBackground} alt="Yulia junto a una laptop, libros de bioquímica y alimentos" className="absolute inset-0 size-full object-cover object-right" />
-        <div className="pointer-events-none absolute inset-y-0 left-0 hidden w-56 bg-gradient-to-r from-[#f8fbfe] via-[#f8fbfe]/80 to-transparent lg:block" aria-hidden="true" />
-      </div>
     </section>
 
-    <section className="home-benefits relative overflow-hidden" aria-label="Beneficios de la plataforma">
-      <Atom size={152} strokeWidth={0.8} className="pointer-events-none absolute -left-12 top-4 text-action opacity-[0.07]" aria-hidden="true" />
-      <Leaf size={112} strokeWidth={0.8} className="pointer-events-none absolute -right-7 bottom-0 text-brand-ink opacity-[0.08]" aria-hidden="true" />
-      <div className="site-container relative z-10 py-10 sm:py-12 lg:py-14">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {benefits.map(({ icon: Icon, title, description, color }, index) => <article key={title} className="home-benefit rounded-2xl border border-white/90 bg-white p-4 shadow-[0_3px_16px_rgba(15,41,66,0.05)]" style={{ animationDelay: `${index * 70}ms` }}>
-            <span className={`home-benefit-icon mb-2.5 inline-flex size-9 items-center justify-center rounded-xl ${color}`}><Icon size={19} aria-hidden="true" /></span>
-            <h2 className="text-[15px] font-semibold leading-snug text-navy">{title}</h2>
-            <p className="mt-1.5 text-sm leading-[1.55] text-slate-700">{description}</p>
-          </article>)}
-        </div>
-      </div>
-    </section>
-
-    <section id="acerca" className="scroll-mt-24 bg-[#fdfefd] pb-14 pt-12 sm:pb-16 sm:pt-14 lg:pb-20 lg:pt-16">
+    <section className="home-section home-section-green" aria-labelledby="docentes-titulo">
       <div className="site-container">
-        <div className="text-center">
-          <p className="eyebrow text-xs">Una plataforma, dos experiencias</p>
-          <h2 className="mt-2 text-3xl font-semibold tracking-tight text-navy sm:text-[2.1rem]">¿Cómo funciona?</h2>
-          <p className="mt-2 text-base text-slate-700">Dos perfiles, una misma plataforma.</p>
-          <span className="mx-auto mt-5 block h-0.5 w-12 rounded-full bg-brand/70" aria-hidden="true" />
+        <div className="home-teacher">
+          <div>
+            <p className="home-eyebrow home-eyebrow-amber">Para docentes</p>
+            <h2 className="mt-3 text-[1.6rem] font-semibold leading-[1.2] tracking-tight text-navy sm:text-[1.9rem] lg:text-[2.1rem]">Crea experiencias de aprendizaje que van más allá de una clase</h2>
+            <p className="mt-4 max-w-lg text-base leading-7 text-slate-600">Organiza cursos, diseña casos, publica simulaciones y comparte contenido con tus estudiantes desde un mismo lugar.</p>
+            <ul className="home-check-list">
+              {teacherBenefits.map((benefit) => (
+                <li key={benefit} className="home-check">
+                  <span className="home-check-icon"><Check size={12} aria-hidden="true" /></span>
+                  {benefit}
+                </li>
+              ))}
+            </ul>
+            <Button to="/acceso" size="lg" className="home-cta-green-dark mt-8">Crear contenido</Button>
+          </div>
+          <figure className="home-teacher-figure">
+            <span className="home-teacher-glow" aria-hidden="true" />
+            <span className="home-teacher-accent" aria-hidden="true" />
+            <img src={teacherImage} alt="Docente de bioquímica con tableta" loading="lazy" className="home-teacher-img" />
+          </figure>
         </div>
-        <div className="mt-8 grid gap-5 lg:grid-cols-2 lg:gap-6">
-          <JourneyPanel title="Para estudiantes" description="Explora, practica y aprende con la guía de un tutor inteligente." steps={studentSteps} image={studentImage} imageAlt="Estudiante con computadora portátil" tone="student" />
-          <JourneyPanel title="Para docentes" description="Crea experiencias de aprendizaje interactivas para tus estudiantes." steps={teacherSteps} image={teacherImage} imageAlt="Docente de bioquímica con tableta" tone="teacher" />
+      </div>
+    </section>
+
+    <section className="home-section" aria-labelledby="cierre-titulo">
+      <div className="site-container">
+        <div className="home-final">
+          <Leaf size={120} strokeWidth={0.9} className="home-final-leaf home-final-leaf-left" aria-hidden="true" />
+          <Leaf size={96} strokeWidth={0.9} className="home-final-leaf home-final-leaf-right" aria-hidden="true" />
+          <div className="relative z-10">
+            <h2 className="mx-auto max-w-2xl text-[1.75rem] font-semibold leading-[1.18] tracking-tight text-navy sm:text-[2.1rem] lg:text-[2.35rem]">Aprender nutrición también puede ser una experiencia</h2>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">Explora cursos, practica con casos y descubre una forma más activa de aprender.</p>
+            <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+              <Button to="/acceso" size="lg" className="home-cta-green w-full sm:w-auto">Comenzar</Button>
+              <Button to={coursePath} variant="secondary" size="lg" className="home-cta-outline w-full sm:w-auto">Explorar cursos</Button>
+            </div>
+          </div>
         </div>
       </div>
     </section>

@@ -9,6 +9,7 @@ import { MvpShell } from './mvp/MvpShell';
 import { RouteGuard } from './mvp/RouteGuard';
 import { SimulationDetailPage } from './mvp/SimulationDetailPage';
 import { SimulationEditorPage } from './mvp/SimulationEditorPage';
+import { VideosPage } from './mvp/VideosPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export function App() {
@@ -17,6 +18,7 @@ export function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/acceso" element={<AuthPage mode="login" />} />
       <Route path="/registro" element={<AuthPage mode="register" />} />
+      <Route path="/videos" element={<VideosPage />} />
       <Route element={<RouteGuard role="teacher" />}>
         <Route path="/docente" element={<CoursesPage />} />
         <Route path="/docente/cursos/nuevo" element={<CourseEditorPage />} />

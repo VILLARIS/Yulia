@@ -1,4 +1,6 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { Menu, X } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { Button } from '../components/ui/Button';
 import yuliaLogo from '../assets/yulia/logo-yulia.jpeg';
@@ -7,28 +9,114 @@ export function MvpHeader() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuButtonRef = useRef(null);
   const coursePath = user ? user.role === 'teacher' ? '/docente' : '/estudiante' : '/acceso';
-  const active = location.pathname === '/' ? location.hash === '#acerca' ? 'about' : 'home' : location.pathname.startsWith('/docente') || location.pathname.startsWith('/estudiante') ? 'courses' : '';
+  const active = location.pathname === '/'
+    ? location.hash === '#acerca' ? 'about' : 'home'
+    : location.pathname.startsWith('/docente') || location.pathname.startsWith('/estudiante')
+      ? 'courses'
+      : location.pathname.startsWith('/videos')
+        ? 'videos'
+        : '';
+
+  const links = [
+    { key: 'home', to: '/', label: 'Inicio', current: 'page' },
+    { key: 'courses', to: coursePath, label: 'Cursos', current: 'page' },
+    { key: 'videos', to: '/videos', label: 'Videos', current: 'page' },
+    { key: 'about', to: '/#acerca', label: 'Acerca de', current: 'location' },
+  ];
+
+  const handleLogout = async () => {
+    await logout();
+    navigate('/acceso');
+  };
+
+  useEffect(() => {
+    setMenuOpen(false);
+  }, [location.pathname, location.hash]);
+
+  // El menú móvil es un disclosure, no un diálogo: sin `aria-modal` ni trampa de
+  // foco. Escape lo cierra y devuelve el foco al botón que lo abrió.
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    function handleKeyDown(event) {
+      if (event.key !== 'Escape') return;
+      setMenuOpen(false);
+      menuButtonRef.current?.focus();
+    }
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [menuOpen]);
+
   return (
-    <header className="sticky top-0 z-30 border-b border-[#e9eff4] bg-white/95 backdrop-blur-[6px]">
-      <div className="site-container flex min-h-[72px] flex-wrap items-center justify-between gap-x-2 gap-y-1.5 py-2 sm:gap-x-5">
-        <Link to="/" className="flex min-w-0 items-center gap-2.5 rounded-lg focus-visible:ring-2 focus-visible:ring-action">
-          <img src={yuliaLogo} alt="" className="size-9 shrink-0 rounded-lg border border-slate-200 object-cover" />
-          <span className="flex min-w-0 flex-col leading-tight">
-            <strong className="text-lg font-bold tracking-[0.08em] text-navy">YULIA</strong>
-            <small className="text-[9px] font-semibold tracking-[0.08em] text-slate-500 sm:text-[10px]">BIOQUÍMICA NUTRICIONAL</small>
-          </span>
+    <header className="mvp-header sticky top-0 z-30 border-b border-[#e9eff4] bg-white">
+      <div className="site-container mvp-header-inner">
+        <Link to="/" className="mvp-brand" aria-label="Bromatología y Nutrición. Ir al inicio">
+          <img src={yuliaLogo} alt="" className="mvp-brand-logo" />
+          <span className="mvp-brand-text">Bromatología y Nutrición</span>
         </Link>
-        <nav aria-label="Navegación principal" className="mvp-nav order-3 flex w-full items-center justify-center gap-1 border-t border-slate-100 pt-1 md:order-none md:w-auto md:border-0 md:pt-0">
-          <Link to="/" aria-current={active === 'home' ? 'page' : undefined} className={`nav-link ${active === 'home' ? 'nav-link-active' : ''}`}>Inicio</Link>
-          <Link to={coursePath} aria-current={active === 'courses' ? 'page' : undefined} className={`nav-link ${active === 'courses' ? 'nav-link-active' : ''}`}>Cursos</Link>
-          <Link to="/#acerca" aria-current={active === 'about' ? 'location' : undefined} className={`nav-link ${active === 'about' ? 'nav-link-active' : ''}`}>Acerca de</Link>
+
+        <nav aria-label="Navegación principal" className="mvp-nav hidden items-center gap-1 lg:flex">
+          {links.map(({ key, to, label, current }) => (
+            <Link
+              key={key}
+              to={to}
+              aria-current={active === key ? current : undefined}
+              className={`nav-link ${active === key ? 'nav-link-active' : ''}`}
+            >
+              {label}
+            </Link>
+          ))}
         </nav>
-        <div className="flex items-center gap-2">
-          {user && <button type="button" className="nav-link" onClick={async () => { await logout(); navigate('/acceso'); }}>Salir</button>}
-          <Button to="/acceso" size="sm" className="mvp-header-cta">Comenzar</Button>
+
+        <div className="mvp-actions hidden items-center gap-1.5 lg:flex">
+          {user ? (
+            <button type="button" className="nav-link" onClick={handleLogout}>Salir</button>
+          ) : (
+            <Button to="/acceso" size="sm" className="mvp-header-cta">Comenzar</Button>
+          )}
         </div>
+
+        <button
+          ref={menuButtonRef}
+          type="button"
+          onClick={() => setMenuOpen((open) => !open)}
+          aria-expanded={menuOpen}
+          aria-controls="navegacion-movil"
+          aria-label={menuOpen ? 'Cerrar menú' : 'Abrir menú'}
+          className="mvp-menu-button"
+        >
+          {menuOpen ? <X size={20} aria-hidden="true" /> : <Menu size={20} aria-hidden="true" />}
+        </button>
       </div>
+
+      {menuOpen ? (
+        <div id="navegacion-movil" className="mvp-mobile-menu">
+          <nav aria-label="Navegación principal móvil" className="site-container py-3">
+            <ul className="flex flex-col gap-0.5">
+              {links.map(({ key, to, label, current }) => (
+                <li key={key}>
+                  <Link
+                    to={to}
+                    aria-current={active === key ? current : undefined}
+                    className={`mvp-mobile-link ${active === key ? 'mvp-mobile-link-active' : ''}`}
+                  >
+                    {label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+            <div className="mt-3 border-t border-[#e9eff4] pt-3">
+              {user ? (
+                <button type="button" onClick={handleLogout} className="mvp-mobile-link w-full">Salir</button>
+              ) : (
+                <Button to="/acceso" size="md" className="mvp-header-cta w-full">Comenzar</Button>
+              )}
+            </div>
+          </nav>
+        </div>
+      ) : null}
     </header>
   );
 }
