@@ -2,7 +2,7 @@ import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 import { query } from './db.js';
-import { clearSession, hashPassword, requireRole, requireUser, setSession, verifyPassword } from './auth.js';
+import { clearSession, hashPassword, optionalUser, requireRole, requireUser, setSession, verifyPassword } from './auth.js';
 
 export const mvp = Router();
 const run = (handler) => (req, res, next) => Promise.resolve(handler(req, res)).catch(next);
@@ -52,12 +52,15 @@ mvp.post('/auth/login', run(async (req, res) => {
 mvp.post('/auth/logout', (_req, res) => { clearSession(res); res.status(204).end(); });
 mvp.get('/auth/me', requireUser, (req, res) => res.json({ user: req.user }));
 
-mvp.get('/courses', requireUser, run(async (req, res) => {
-  if (req.user.role === 'teacher') {
+// Lectura pública: el catálogo muestra solo cursos publicados. Con sesión de
+// docente devuelve sus propios cursos; con sesión de estudiante o como
+// visitante, el catálogo publicado con la marca `enrolled` para quien tenga cuenta.
+mvp.get('/courses', optionalUser, run(async (req, res) => {
+  if (req.user?.role === 'teacher') {
     const { rows } = await query(`SELECT ${courseSelect} FROM courses WHERE teacher_id = $1 ORDER BY created_at DESC`, [req.user.id]);
     return res.json({ courses: rows });
   }
-  const { rows } = await query(`SELECT ${qualified(courseSelect, 'c')}, u.display_name AS "teacherName", EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.student_id = $1) AS enrolled FROM courses c JOIN users u ON u.id = c.teacher_id WHERE c.published = true ORDER BY c.created_at DESC`, [req.user.id]);
+  const { rows } = await query(`SELECT ${qualified(courseSelect, 'c')}, u.display_name AS "teacherName", EXISTS (SELECT 1 FROM enrollments e WHERE e.course_id = c.id AND e.student_id = $1) AS enrolled FROM courses c JOIN users u ON u.id = c.teacher_id WHERE c.published = true ORDER BY c.created_at DESC`, [req.user?.id ?? null]);
   res.json({ courses: rows });
 }));
 

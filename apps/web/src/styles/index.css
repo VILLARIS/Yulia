@@ -28,7 +28,7 @@
 
 @layer components {
   .skip-link {
-    @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-navy px-4 py-2 text-sm font-semibold text-white transition-transform focus:translate-y-0;
+    @apply fixed left-4 top-4 z-50 -translate-y-24 rounded-lg bg-[#173b6c] px-4 py-2 text-sm font-semibold text-white transition-transform focus:translate-y-0;
   }
 
   /*
@@ -45,17 +45,17 @@
   }
 
   .nav-link {
-    @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium text-slate-600 transition-colors hover:bg-blue-50/70 hover:text-navy;
+    @apply inline-flex items-center gap-2 rounded-lg px-3.5 py-2 text-sm font-medium text-[#5c6f82] transition-colors hover:bg-[#eaf6e4] hover:text-[#173b6c];
   }
 
   /*
-   * Estado activo: fondo azul muy suave y texto azul, con el peso reforzado
-   * para que se distinga sin necesidad de un borde. `.nav-link-active` se
-   * aplica junto a `.nav-link`, y ambas tienen la misma especificidad, asi que
-   * el orden de esta hoja es lo que hace que el fondo activo prevalezca.
+   * Estado activo: fondo verde muy claro y texto azul profundo, con el peso
+   * reforzado para que se distinga sin necesidad de un borde. `.nav-link-active`
+   * se aplica junto a `.nav-link`, y ambas tienen la misma especificidad, asi
+   * que el orden de esta hoja es lo que hace que el fondo activo prevalezca.
    */
   .nav-link-active {
-    @apply bg-blue-50 font-semibold text-action hover:bg-blue-50 hover:text-action;
+    @apply bg-[#eaf6e4] font-semibold text-[#173b6c] hover:bg-[#eaf6e4] hover:text-[#173b6c];
   }
 
   .button-primary {
@@ -243,12 +243,12 @@
   }
 
   .mvp-nav .nav-link {
-    @apply relative rounded-none bg-transparent px-3 py-2 text-slate-700 hover:bg-transparent hover:text-action;
+    @apply relative rounded-none bg-transparent px-3 py-2 text-[#5c6f82] hover:bg-transparent hover:text-[#173b6c];
   }
 
   .mvp-nav .nav-link::after {
     content: '';
-    @apply absolute bottom-0.5 left-3 h-0.5 w-[calc(100%-1.5rem)] origin-left scale-x-0 rounded-full bg-action transition-transform duration-200;
+    @apply absolute bottom-0.5 left-3 h-0.5 w-[calc(100%-1.5rem)] origin-left scale-x-0 rounded-full bg-[#67c447] transition-transform duration-200;
   }
 
   .mvp-nav .nav-link:hover::after,
@@ -257,7 +257,7 @@
   }
 
   .mvp-nav .nav-link-active {
-    @apply bg-transparent font-semibold text-action hover:bg-transparent;
+    @apply bg-transparent font-semibold text-[#173b6c] hover:bg-transparent;
   }
 
   /*
@@ -275,11 +275,11 @@
   }
 
   .mvp-brand-logo {
-    @apply size-9 shrink-0 rounded-lg border border-slate-200 object-cover lg:size-10;
+    @apply size-9 shrink-0 rounded-lg border border-[#dce8d8] object-cover lg:size-10;
   }
 
   .mvp-brand-text {
-    @apply truncate text-[0.9375rem] font-bold tracking-tight text-navy;
+    @apply truncate text-[0.9375rem] font-bold tracking-tight text-[#173b6c];
   }
 
   .mvp-actions {
@@ -287,19 +287,19 @@
   }
 
   .mvp-menu-button {
-    @apply grid size-10 shrink-0 place-items-center rounded-lg border border-slate-300 text-navy transition-colors hover:bg-slate-50 lg:hidden;
+    @apply grid size-10 shrink-0 place-items-center rounded-lg border border-[#dce8d8] text-[#173b6c] transition-colors hover:bg-[#eaf6e4] lg:hidden;
   }
 
   .mvp-mobile-menu {
-    @apply border-t border-[#e9eff4] bg-white lg:hidden;
+    @apply border-t border-[#dce8d8] bg-[#fbfcf8] lg:hidden;
   }
 
   .mvp-mobile-link {
-    @apply flex items-center gap-2 rounded-md px-3 py-2.5 text-[0.9375rem] font-medium text-slate-700 transition-colors hover:bg-blue-50/70 hover:text-navy;
+    @apply flex items-center gap-2 rounded-md px-3 py-2.5 text-[0.9375rem] font-medium text-[#5c6f82] transition-colors hover:bg-[#eaf6e4] hover:text-[#173b6c];
   }
 
   .mvp-mobile-link-active {
-    @apply bg-blue-50 font-semibold text-action hover:bg-blue-50 hover:text-action;
+    @apply bg-[#eaf6e4] font-semibold text-[#173b6c] hover:bg-[#eaf6e4] hover:text-[#173b6c];
   }
 
   @media (min-width: 1024px) {
@@ -314,11 +314,12 @@
     .mvp-actions { justify-self: end; }
   }
 
-  /* Botón principal de la barra: sólido, con un hover solo ligeramente más
-   * oscuro. El tono exacto lo aporta `.button-primary`; aquí se acota la
-   * transición para que el cambio de color sea breve y elegante. */
+  /* CTA de la barra: verde de marca accesible (4.65:1 con texto blanco) y halo
+   * tenue. La navegación queda en azul profundo para no competir con él. */
   .mvp-header-cta {
-    transition: background-color 160ms ease;
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c] focus-visible:!ring-offset-[#fbfcf8];
+    box-shadow: 0 4px 10px rgb(43 133 55 / 0.18);
+    transition: background-color 160ms ease, box-shadow 160ms ease;
   }
 
   /*
@@ -380,12 +381,12 @@
   }
 
   .home-hero-points li {
-    @apply flex items-center gap-2 text-sm text-slate-600;
+    @apply flex items-center gap-2 text-sm text-[#5c6f82];
   }
 
   .home-hero-points li::before {
     content: '';
-    @apply size-1.5 shrink-0 rounded-full bg-brand;
+    @apply size-1.5 shrink-0 rounded-full bg-[#67c447];
   }
 
   /* Los CTA del hero solo cambian de color: sin elevación ni sombra. */
@@ -394,31 +395,38 @@
     transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
   }
 
+  /* Explorar cursos: acción de marca en el verde profundo accesible (4.65:1 con
+   * texto blanco). Se anula el color heredado del botón compartido. */
+  .home-cta-primary {
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c];
+    box-shadow: 0 6px 14px rgb(43 133 55 / 0.22);
+  }
+
   .home-cta-secondary {
-    @apply border-slate-300 bg-white text-navy hover:border-slate-400 hover:bg-slate-50;
+    @apply border-[#dce8d8] bg-white text-[#173b6c] hover:border-[#bcd4b6] hover:bg-[#eaf6e4];
   }
 
   /* --- Home: secciones bajo el hero --------------------------------------- */
 
-  /* Ritmo de fondos cálidos. Cada tramo de la página respira con un tono
-   * distinto, siempre muy claro, para que se note que se avanza por partes de
-   * la experiencia sin recurrir a grandes manchas de color. */
+  /* Ritmo de fondos claros y cálidos. Cada tramo de la página respira con un
+   * tono distinto, siempre muy suave, para que se note que se avanza por partes
+   * de la experiencia sin recurrir a grandes manchas de color. */
   .home-section {
     @apply bg-white py-16 sm:py-20 lg:py-24;
   }
 
   .home-section-cream { background-color: #fbfcf8; }
-  .home-section-sky { background-color: #f3f9fd; }
-  .home-section-mint { background-color: #f2faf0; }
-  .home-section-green { background-color: #ecf7ea; }
+  .home-section-sky { background-color: #f5faf3; }
+  .home-section-mint { background-color: #eef8ea; }
+  .home-section-green { background-color: #e7f5e3; }
 
   .home-eyebrow {
-    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#2f8f3e];
+    @apply inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.15em] text-[#2b8537];
   }
 
   .home-eyebrow::before {
     content: '';
-    @apply size-1.5 shrink-0 rounded-full bg-[#58b947];
+    @apply size-1.5 shrink-0 rounded-full bg-[#67c447];
   }
 
   .home-eyebrow-amber::before { @apply bg-[#f2c94c]; }
@@ -430,13 +438,13 @@
 
   .home-bento:hover {
     transform: translateY(-2px);
-    box-shadow: 0 14px 28px rgb(15 41 66 / 0.09);
+    box-shadow: 0 14px 28px rgb(23 59 108 / 0.1);
   }
 
-  .home-bento-feature { background-color: #eaf6e2; }
-  .home-bento-courses { background-color: #e9f3fc; }
-  .home-bento-videos { background-color: #f4f7e7; }
-  .home-bento-wide { background-color: #eaeff6; }
+  .home-bento-feature { background-color: #eaf6e4; }
+  .home-bento-courses { background-color: #eaf4f0; }
+  .home-bento-videos { background-color: #f1f9e8; }
+  .home-bento-wide { background-color: #e9f0f0; }
 
   @media (min-width: 640px) {
     .home-bento-wide { @apply flex-row items-center gap-6; }
@@ -444,7 +452,7 @@
 
   .home-bento-index {
     @apply pointer-events-none absolute -right-1 -top-4 text-6xl font-bold leading-none;
-    color: rgb(15 41 66 / 0.06);
+    color: rgb(23 59 108 / 0.07);
   }
 
   .home-bento-icon {
@@ -453,21 +461,21 @@
 
   .home-bento-wide .home-bento-icon { @apply mb-0; }
 
-  .home-bento-icon-blue { @apply bg-[#d8eaf9] text-[#1769aa]; }
-  .home-bento-icon-green { @apply bg-[#d5efc9] text-[#2f8f3e]; }
+  .home-bento-icon-blue { @apply bg-[#dceee6] text-[#173b6c]; }
+  .home-bento-icon-green { @apply bg-[#d5efc9] text-[#2b8537]; }
 
-  .home-bento-title { @apply text-lg font-semibold tracking-tight text-navy; }
+  .home-bento-title { @apply text-lg font-semibold tracking-tight text-[#173b6c]; }
   .home-bento-feature .home-bento-title { @apply text-xl sm:text-2xl; }
-  .home-bento-text { @apply mt-2 text-sm leading-6 text-[#42566b]; }
-  .home-bento-note { @apply mt-auto pt-5 text-sm font-medium text-[#2f8f3e]; }
+  .home-bento-text { @apply mt-2 text-sm leading-6 text-[#5c6f82]; }
+  .home-bento-note { @apply mt-auto pt-5 text-sm font-medium text-[#2b8537]; }
 
   /* Paneles "estudiante" y "docente" -------------------------------------- */
   .home-experience {
     @apply relative flex min-h-[430px] flex-col overflow-hidden rounded-2xl border p-6 sm:p-8;
   }
 
-  .home-experience-student { @apply border-blue-100 bg-[#e9f3fc]; }
-  .home-experience-teacher { @apply border-emerald-100 bg-[#e8f5e4]; }
+  .home-experience-student { @apply border-[#dce8d8] bg-[#f1f9ee]; }
+  .home-experience-teacher { @apply border-[#dce8d8] bg-[#eaf6e4]; }
 
   .home-experience-body { @apply relative z-10 flex flex-1 flex-col sm:max-w-[64%]; }
 
@@ -481,29 +489,29 @@
     @apply inline-flex items-center gap-1.5 self-start rounded-full px-3 py-1 text-[11px] font-semibold uppercase tracking-[0.1em];
   }
 
-  .home-tag-student { @apply bg-[#d3e7fa] text-[#1769aa]; }
-  .home-tag-teacher { @apply bg-[#d2edcd] text-[#1f7a4c]; }
+  .home-tag-student { @apply bg-[#dceceb] text-[#173b6c]; }
+  .home-tag-teacher { @apply bg-[#d5efc9] text-[#2b8537]; }
 
-  .home-experience-title { @apply mt-4 text-2xl font-semibold tracking-tight text-navy; }
+  .home-experience-title { @apply mt-4 text-2xl font-semibold tracking-tight text-[#173b6c]; }
 
   .home-path { @apply mt-6 flex flex-col; }
 
-  .home-path li { @apply relative flex items-center gap-3 pb-4 text-sm font-medium text-navy last:pb-0; }
+  .home-path li { @apply relative flex items-center gap-3 pb-4 text-sm font-medium text-[#173b6c] last:pb-0; }
 
   .home-path li:not(:last-child)::before {
     content: '';
     @apply absolute left-4 top-8 bottom-0 w-px -translate-x-1/2;
   }
 
-  .home-path-student li:not(:last-child)::before { @apply bg-blue-300/60; }
-  .home-path-teacher li:not(:last-child)::before { @apply bg-emerald-300/60; }
+  .home-path-student li:not(:last-child)::before { @apply bg-[#a9d4c9]/70; }
+  .home-path-teacher li:not(:last-child)::before { @apply bg-[#b6e0a4]/70; }
 
   .home-path-num {
     @apply relative z-10 flex size-8 shrink-0 items-center justify-center rounded-full text-[11px] font-bold;
   }
 
-  .home-path-student .home-path-num { @apply bg-[#d3e7fa] text-[#1769aa]; }
-  .home-path-teacher .home-path-num { @apply bg-[#d2edcd] text-[#1f7a4c]; }
+  .home-path-student .home-path-num { @apply bg-[#dceceb] text-[#173b6c]; }
+  .home-path-teacher .home-path-num { @apply bg-[#d5efc9] text-[#2b8537]; }
 
   .home-experience-img {
     @apply pointer-events-none relative mx-auto mt-8 h-44 w-auto object-contain object-bottom;
@@ -531,58 +539,58 @@
 
   .home-reel:hover .home-reel-thumb {
     transform: translateY(-2px);
-    box-shadow: 0 12px 24px rgb(15 41 66 / 0.1);
+    box-shadow: 0 12px 24px rgb(23 59 108 / 0.11);
   }
 
-  .home-reel-green { background-color: #e5f4e2; }
-  .home-reel-blue { background-color: #e6f1fb; }
-  .home-reel-ivory { background-color: #f6f1e4; }
+  .home-reel-green { background-color: #eaf6e4; }
+  .home-reel-blue { background-color: #e9f4ef; }
+  .home-reel-ivory { background-color: #f6f3e6; }
 
-  .home-reel-mark { @apply text-[#2f8f3e]; }
-  .home-reel-blue .home-reel-mark { @apply text-[#1769aa]; }
+  .home-reel-mark { @apply text-[#2b8537]; }
+  .home-reel-blue .home-reel-mark { @apply text-[#173b6c]; }
   .home-reel-ivory .home-reel-mark { @apply text-[#9a8b55]; }
 
   .home-reel-play {
-    @apply absolute grid size-12 place-items-center rounded-full bg-[#0f2942] text-white shadow-[0_5px_14px_rgba(15,41,66,0.28)];
+    @apply absolute grid size-12 place-items-center rounded-full bg-[#173b6c] text-white shadow-[0_5px_14px_rgba(23,59,108,0.28)];
   }
 
-  .home-reel-title { @apply mt-3 text-sm font-semibold leading-snug text-navy; }
-  .home-reel-meta { @apply mt-1 flex items-center gap-1.5 text-xs text-[#5b6b7b]; }
+  .home-reel-title { @apply mt-3 text-sm font-semibold leading-snug text-[#173b6c]; }
+  .home-reel-meta { @apply mt-1 flex items-center gap-1.5 text-xs text-[#5c6f82]; }
 
   /* Chat conceptual de simulación ----------------------------------------- */
   .home-chat {
-    @apply flex flex-col gap-3 rounded-2xl border border-blue-100 bg-white p-4 shadow-[0_14px_32px_rgba(23,105,170,0.07)] sm:p-5;
+    @apply flex flex-col gap-3 rounded-2xl border border-[#dce8d8] bg-white p-4 shadow-[0_14px_32px_rgba(23,59,108,0.07)] sm:p-5;
   }
 
   .home-chat-row { @apply flex items-end gap-2.5; }
   .home-chat-row-student { @apply flex-row-reverse; }
 
   .home-chat-avatar { @apply size-8 shrink-0 overflow-hidden rounded-full bg-white object-cover; }
-  .home-chat-avatar-tutor { @apply ring-2 ring-[#58b947]; }
-  .home-chat-avatar-fallback { @apply grid place-items-center bg-[#d2edcd] text-[10px] font-semibold text-[#1f7a4c]; }
+  .home-chat-avatar-tutor { @apply ring-2 ring-[#67c447]; }
+  .home-chat-avatar-fallback { @apply grid place-items-center bg-[#d5efc9] text-[10px] font-semibold text-[#2b8537]; }
 
-  .home-chat-bubble { @apply max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-6 text-navy; }
-  .home-chat-bubble-tutor { @apply rounded-bl-sm bg-[#e7f1fa]; }
-  .home-chat-bubble-student { @apply rounded-br-sm bg-[#e7f5e8]; }
+  .home-chat-bubble { @apply max-w-[80%] rounded-2xl px-3.5 py-2.5 text-sm leading-6 text-[#173b6c]; }
+  .home-chat-bubble-tutor { @apply rounded-bl-sm bg-[#e9f4ef]; }
+  .home-chat-bubble-student { @apply rounded-br-sm bg-[#eaf6e4]; }
 
-  .home-chat-label { @apply mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-[#1769aa]; }
+  .home-chat-label { @apply mb-0.5 block text-[10px] font-semibold uppercase tracking-[0.1em] text-[#173b6c]; }
 
   .home-chat-input {
-    @apply mt-1 flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm text-slate-400;
+    @apply mt-1 flex items-center justify-between gap-2 rounded-xl border border-[#dce8d8] bg-white px-3.5 py-2.5 text-sm text-[#7e90a3];
   }
 
-  .home-chat-send { @apply grid size-7 shrink-0 place-items-center rounded-lg bg-[#58b947] text-white; }
+  .home-chat-send { @apply grid size-7 shrink-0 place-items-center rounded-lg bg-[#2b8537] text-white; }
 
   /* Sección para docentes -------------------------------------------------- */
   .home-teacher {
-    @apply grid gap-8 rounded-2xl border border-emerald-100 bg-[#e9f6e5] p-6 sm:p-9 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:gap-10;
+    @apply grid gap-8 rounded-2xl border border-[#dce8d8] bg-[#eaf6e4] p-6 sm:p-9 lg:grid-cols-[1fr_0.85fr] lg:items-center lg:gap-10;
   }
 
   .home-check-list { @apply mt-6 grid gap-3 sm:grid-cols-2; }
 
-  .home-check { @apply flex items-center gap-2.5 text-sm font-medium text-navy; }
+  .home-check { @apply flex items-center gap-2.5 text-sm font-medium text-[#173b6c]; }
 
-  .home-check-icon { @apply flex size-5 shrink-0 items-center justify-center rounded-full bg-[#58b947] text-white; }
+  .home-check-icon { @apply flex size-5 shrink-0 items-center justify-center rounded-full bg-[#2b8537] text-white; }
 
   .home-teacher-figure { @apply relative mx-auto; }
   .home-teacher-glow { @apply pointer-events-none absolute inset-0 mx-auto my-auto aspect-square w-60 max-w-full rounded-full bg-white/60; }
@@ -591,58 +599,121 @@
 
   /* Cierre de la página ---------------------------------------------------- */
   .home-final {
-    @apply relative overflow-hidden rounded-[1.75rem] border border-emerald-100/70 px-6 py-14 text-center sm:px-10 sm:py-16;
-    background-image: linear-gradient(180deg, #e7f6e4 0%, #f3fbf1 100%);
+    @apply relative overflow-hidden rounded-[1.75rem] border border-[#dce8d8] px-6 py-14 text-center sm:px-10 sm:py-16;
+    background-image: linear-gradient(180deg, #e7f5e3 0%, #f3fbf1 100%);
   }
 
-  .home-final-leaf { @apply pointer-events-none absolute text-[#58b947]; opacity: 0.16; }
+  .home-final-leaf { @apply pointer-events-none absolute text-[#67c447]; opacity: 0.16; }
 
   .home-final-leaf-left { @apply -left-4 -top-4 sm:left-2 sm:top-2; }
   .home-final-leaf-right { @apply -bottom-4 -right-4 sm:bottom-2 sm:right-2; }
 
-  /* Jerarquía de CTAs del Home: verde para acciones de marca, azul para lo
-   * relacionado con simulaciones. Se anulan con `!` los colores heredados del
-   * botón compartido para poder reutilizarlo sin duplicar componentes. */
-  .home-cta-green { @apply !bg-[#58b947] hover:!bg-[#3f9a36]; }
-  .home-cta-green-dark { @apply !bg-[#1f7a4c] hover:!bg-[#176038]; }
-  .home-cta-outline { @apply !border-navy !text-navy hover:!border-[#1769aa] hover:!text-[#1769aa]; }
+  /* Jerarquía de CTAs del Home: verde para acciones de marca, azul profundo
+   * para lo relacionado con simulaciones. Se anulan con `!` los colores
+   * heredados del botón compartido para poder reutilizarlo sin duplicar
+   * componentes. El verde es el profundo accesible, no el brillante. */
+  .home-cta-green { @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c]; }
+  .home-cta-green-dark { @apply !bg-[#1f6b3a] hover:!bg-[#175530] focus-visible:!ring-[#173b6c]; }
+  .home-cta-outline { @apply !border-[#173b6c] !text-[#173b6c] hover:!border-[#2b8537] hover:!text-[#2b8537]; }
 
   .home-arrow-cta svg { transition: transform 180ms ease; }
   .home-arrow-cta:hover svg { transform: translateX(3px); }
 
   /* Footer ---------------------------------------------------------------- */
   .mvp-footer {
-    background: radial-gradient(circle at 94% 12%, rgb(214 240 223 / 0.5), transparent 26%), #f4f9f5;
+    background: radial-gradient(circle at 94% 12%, rgb(234 246 228 / 0.7), transparent 26%), #fbfcf8;
   }
 
   /* Doble clase para imponerse al color de borde que fija la utilidad. */
-  .mvp-footer.mvp-footer { border-top-color: rgb(88 185 71 / 0.2); }
+  .mvp-footer.mvp-footer { border-top-color: rgb(220 232 216 / 0.9); }
 
   .mvp-footer-nav a {
     @apply underline-offset-4 transition-colors;
   }
 
-  .mvp-footer-nav a:hover { @apply text-[#2f8f3e] underline; }
+  .mvp-footer-nav a:hover { @apply text-[#2b8537] underline; }
 
-  /* Acceso y registro ----------------------------------------------------- */
+  /* Acceso y registro -----------------------------------------------------
+   * Identidad inspirada en Yumibiotic: azul profundo #173b6c para la jerarquía,
+   * verde natural #67c447 para acentos y foco, verde hondo #2b8537 para la
+   * acción (4.65:1 con texto blanco) y marfil cálido #fbfcf8 de fondo. */
+  .auth-page {
+    background-color: #fbfcf8;
+  }
+
+  .auth-brand-name { color: #173b6c; }
+  .auth-brand-sub { color: #5c6f82; }
+
+  .auth-title { color: #173b6c; }
+
+  .auth-subtitle,
+  .auth-footer,
+  .auth-copy {
+    color: #5c6f82;
+  }
+
   .auth-form input:not([type='radio']) {
     min-height: 3.25rem;
-    border-color: #dbe4ee;
+    border-color: #dce8d8;
     background-color: #ffffff;
+    color: #173b6c;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
     transition: border-color 180ms ease, box-shadow 180ms ease;
   }
 
+  .auth-form input:not([type='radio'])::placeholder {
+    color: #7e90a3;
+  }
+
   .auth-form input:not([type='radio']):hover {
-    border-color: #b9cad9;
+    border-color: #bcd4b6;
   }
 
   .auth-form input:not([type='radio']):focus-visible {
-    border-color: #1769aa;
-    box-shadow: 0 0 0 3px rgb(23 105 170 / 0.1);
+    border-color: #2b8537;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04), 0 0 0 3px rgb(103 196 71 / 0.28);
   }
 
   .auth-form label[for] {
-    @apply text-sm font-medium text-navy;
+    @apply text-sm font-semibold;
+    color: #173b6c;
+  }
+
+  .auth-form label[for] span {
+    color: #5c6f82;
+  }
+
+  /* Icono decorativo del campo: verde de acento, nunca gris frío. */
+  .auth-form .relative > svg {
+    color: #67c447;
+  }
+
+  .auth-eye { color: #5c6f82; }
+  .auth-eye:hover { color: #173b6c; }
+
+  .auth-eye:focus-visible {
+    outline: 2px solid #173b6c;
+    outline-offset: 2px;
+  }
+
+  .auth-return {
+    color: #5c6f82;
+  }
+
+  .auth-return:hover {
+    color: #173b6c;
+    text-decoration: underline;
+    text-underline-offset: 4px;
+  }
+
+  .auth-switch {
+    color: #173b6c;
+  }
+
+  .auth-switch:hover {
+    color: #2b8537;
+    text-decoration: underline;
+    text-underline-offset: 4px;
   }
 
   .auth-eye,
@@ -651,27 +722,31 @@
     transition: color 180ms ease, background-color 180ms ease;
   }
 
-  .auth-return:hover,
-  .auth-switch:hover {
-    @apply text-action underline underline-offset-4;
+  /* Botón principal: verde natural accesible, con halo tenue y sin degradados. */
+  .auth-submit {
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c] focus-visible:!ring-offset-[#fbfcf8];
+    box-shadow: 0 6px 14px rgb(43 133 55 / 0.22);
+    transition: background-color 180ms ease, box-shadow 180ms ease;
   }
 
-  .auth-submit {
-    transition: background-color 180ms ease, border-color 180ms ease, color 180ms ease;
+  .auth-submit:hover:not(:disabled) {
+    box-shadow: 0 8px 18px rgb(43 133 55 / 0.28);
   }
 
   .auth-error {
     @apply border-red-200 bg-red-50/80 py-2.5 text-sm;
   }
 
-  /* Columna visual: la imagen es el fondo y el texto se apoya en un velo tenue
-   * solo en la mitad inferior, para no restar luminosidad ni legibilidad. */
+  /* Columna visual: la imagen es el fondo y el texto se apoya en un velo azul
+   * profundo con un matiz verde cálido en la base, sin restar legibilidad. */
   .auth-visual {
-    background-color: #eef6f1;
+    background-color: #eaf6e4;
   }
 
   .auth-visual-overlay {
-    background: linear-gradient(to top, rgb(15 41 66 / 0.78) 0%, rgb(15 41 66 / 0.34) 34%, rgb(15 41 66 / 0) 62%);
+    background:
+      linear-gradient(to top, rgb(23 59 108 / 0.86) 0%, rgb(23 59 108 / 0.4) 36%, rgb(23 59 108 / 0) 64%),
+      linear-gradient(to top, rgb(103 196 71 / 0.16) 0%, rgb(103 196 71 / 0) 45%);
   }
 
   .auth-visual-content {
@@ -680,34 +755,992 @@
 
   .auth-visual-eyebrow {
     @apply text-xs font-semibold uppercase tracking-[0.14em];
-    color: #bfe3cb;
+    color: #8fd36a;
   }
 
   .auth-visual-title {
     color: #ffffff;
-    text-shadow: 0 1px 12px rgb(15 41 66 / 0.35);
+    text-shadow: 0 1px 12px rgb(23 59 108 / 0.4);
   }
 
   .auth-visual-text {
-    color: rgb(255 255 255 / 0.86);
+    color: rgb(255 255 255 / 0.88);
   }
 
   .auth-benefit {
-    color: rgb(255 255 255 / 0.94);
+    color: rgb(255 255 255 / 0.95);
   }
 
   .auth-benefit svg {
-    color: #8fd9a6;
+    color: #8fd36a;
   }
 
   .auth-mobile-banner .auth-visual-overlay {
-    background: linear-gradient(to top, rgb(15 41 66 / 0.7) 0%, rgb(15 41 66 / 0.15) 55%, rgb(15 41 66 / 0) 82%);
+    background:
+      linear-gradient(to top, rgb(23 59 108 / 0.8) 0%, rgb(23 59 108 / 0.2) 55%, rgb(23 59 108 / 0) 84%),
+      linear-gradient(to top, rgb(103 196 71 / 0.14) 0%, rgb(103 196 71 / 0) 40%);
   }
+
+  /* Catálogo de cursos -----------------------------------------------------
+   * Identidad Yumibiotic: navy #173b6c para la jerarquía, verde profundo
+   * #2b8537 para la acción, verde brillante #67c447 para acentos y marfil
+   * #fbfcf8 de fondo. La cabecera lleva la voz principal; el catálogo respira
+   * en una retícula amplia con tarjetas claras y elevación discreta. */
+  .courses-page {
+    background-color: #fbfcf8;
+  }
+
+  /* Cabecera: voz principal de la página. Título grande en navy, apoyo en gris
+   * azulado y una forma verde suave en la esquina que da personalidad sin ruido. */
+  .courses-header {
+    position: relative;
+    overflow: hidden;
+    padding: 3.25rem 0 2.75rem;
+    border-bottom: 1px solid #dce8d8;
+    background:
+      radial-gradient(circle at 88% -50%, rgb(103 196 71 / 0.18), transparent 46%),
+      linear-gradient(180deg, #ffffff 0%, #f4faf1 100%);
+  }
+
+  .courses-header::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgb(103 196 71 / 0.45), rgb(23 59 108 / 0.18) 48%, transparent 84%);
+  }
+
+  .courses-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .courses-title {
+    @apply mt-3 text-[2rem] font-bold leading-[1.1] tracking-tight text-[#173b6c] sm:text-[2.6rem] lg:text-[3rem];
+  }
+
+  .courses-subtitle {
+    @apply mt-4 max-w-2xl text-base leading-7 text-[#5c6f82] sm:text-lg sm:leading-8;
+  }
+
+  .courses-count {
+    @apply mt-5 inline-flex items-center gap-2 rounded-full border border-[#cfe8cf] bg-[#eaf6e4] px-3.5 py-1.5 text-sm font-semibold text-[#1f6b3a];
+  }
+
+  .courses-count::before {
+    content: '';
+    @apply size-1.5 rounded-full bg-[#67c447];
+  }
+
+  /* El catálogo arranca en marfil y cierra igual: sin manchas decorativas. */
+  .courses-main {
+    @apply py-10 lg:py-14;
+    background: linear-gradient(180deg, #fbfcf8 0%, #fbfcf8 100%);
+  }
+
+  .courses-toolbar {
+    @apply mb-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between;
+  }
+
+  .courses-search {
+    @apply relative w-full sm:max-w-sm;
+  }
+
+  .courses-search-icon {
+    @apply pointer-events-none absolute left-3.5 top-1/2 -translate-y-1/2 text-[#5c6f82];
+  }
+
+  .courses-search-input {
+    @apply w-full rounded-xl border border-[#dce8d8] bg-white py-3 pl-11 pr-4 text-base text-[#173b6c] transition-colors placeholder:text-[#7e90a3];
+  }
+
+  .courses-search-input:hover { border-color: #bcd4b6; }
+
+  .courses-search-input:focus-visible {
+    border-color: #2b8537;
+    box-shadow: 0 0 0 3px rgb(103 196 71 / 0.28);
+  }
+
+  /* Segmented control: activo en navy sólido, inactivos transparentes. */
+  .courses-filters {
+    @apply inline-flex max-w-full gap-1 rounded-xl border border-[#dce8d8] bg-white p-1;
+  }
+
+  .courses-filter {
+    @apply shrink-0 rounded-lg px-3.5 py-2 text-sm font-medium text-[#5c6f82] transition-colors;
+  }
+
+  .courses-filter:hover { background-color: #eaf6e4; color: #173b6c; }
+
+  .courses-filter-active,
+  .courses-filter-active:hover {
+    @apply bg-[#173b6c] text-white;
+  }
+
+  .courses-grid {
+    @apply grid list-none gap-6 p-0 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  .courses-empty {
+    @apply mx-auto max-w-xl;
+  }
+
+  /* Tarjeta: superficie blanca, borde cálido y elevación discreta al pasar.
+   * La jerarquía interna va del rótulo verde al título navy y al texto gris. */
+  .course-card {
+    @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#dce8d8] bg-white;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .course-card:hover {
+    transform: translateY(-4px);
+    border-color: #bcd4b6;
+    box-shadow: 0 18px 36px rgb(23 59 108 / 0.12);
+  }
+
+  /* Destacada con sutileza: línea superior verde para lo que ya se está cursando. */
+  .course-card-enrolled::before {
+    content: '';
+    position: absolute;
+    inset: 0 0 auto 0;
+    height: 3px;
+    background: linear-gradient(90deg, #2b8537, #67c447);
+    z-index: 20;
+  }
+
+  /* Cabecera visual de la tarjeta: color determinista, un halo translúcido y un
+   * anillo tenue. Nunca iconos en negro. */
+  .course-card-visual {
+    @apply relative grid place-items-center overflow-hidden;
+    height: 9.5rem;
+  }
+
+  .course-card-visual-green { background-color: #eaf6e4; color: #2b8537; }
+  .course-card-visual-blue { background-color: #e9f0f0; color: #173b6c; }
+  .course-card-visual-cream { background-color: #f2f9ea; color: #1f6b3a; }
+  .course-card-visual-teal { background-color: #e9f4ef; color: #157a6e; }
+
+  .course-card-orb {
+    @apply pointer-events-none absolute rounded-full;
+    width: 9rem;
+    height: 9rem;
+    right: -2.75rem;
+    top: -3.25rem;
+    background-color: rgb(255 255 255 / 0.6);
+  }
+
+  .course-card-visual::after {
+    content: '';
+    @apply pointer-events-none absolute rounded-full;
+    width: 4rem;
+    height: 4rem;
+    left: -1.25rem;
+    bottom: -1.75rem;
+    border: 1px solid rgb(255 255 255 / 0.8);
+  }
+
+  .course-card-icon {
+    @apply relative z-10;
+  }
+
+  .course-card-body {
+    @apply flex flex-1 flex-col p-6;
+  }
+
+  .course-card-top {
+    @apply mb-2.5 flex items-center justify-between gap-2;
+  }
+
+  .course-card-label {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .course-card-title {
+    @apply text-xl font-bold leading-snug tracking-tight text-[#173b6c];
+  }
+
+  .course-card-desc {
+    @apply mt-2.5 flex-1 text-sm leading-6 text-[#5c6f82];
+  }
+
+  .course-card-teacher {
+    @apply mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-[#7e90a3];
+  }
+
+  .course-card-action {
+    @apply mt-5;
+  }
+
+  /* CTA fuera del blanco plano: outline navy para explorar, sólido verde para continuar. */
+  .course-cta-outline {
+    @apply !border-[#bcd4b6] !text-[#173b6c] hover:!border-[#173b6c] hover:!bg-[#eaf6e4];
+  }
+
+  .course-cta-solid {
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c];
+  }
+
+  .course-card-skeleton {
+    min-height: 20rem;
+    border-color: #e6efdf;
+    background: linear-gradient(100deg, #f4faf1 30%, #eaf4e4 50%, #f4faf1 70%);
+    background-size: 200% 100%;
+    animation: course-skeleton 1.4s ease-in-out infinite;
+  }
+
+  @media (max-width: 639.98px) {
+    .courses-header { padding: 2.25rem 0 2rem; }
+    .courses-title { font-size: 1.9rem; }
+    .courses-filters { @apply w-full overflow-x-auto; }
+  }
+
+  /* Detalle de curso --------------------------------------------------------
+   * Misma identidad Yumibiotic: navy #173b6c de jerarquía, verde profundo
+   * #2b8537 para la acción y marfil #fbfcf8 de fondo. La portada presenta el
+   * curso con voz propia; el cuerpo baja a un ritmo editorial claro. */
+  .course-page {
+    background-color: #fbfcf8;
+  }
+
+  .course-container {
+    @apply mx-auto w-full max-w-[1400px] px-5 sm:px-8 lg:px-10;
+  }
+
+  /* Portada compacta: marfil con verde muy suave y una línea editorial que
+   * cierra el tramo. No es un hero: mantiene el contenido por encima del doblez. */
+  .course-cover {
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem 0 2.75rem;
+    border-bottom: 1px solid #dce8d8;
+    background:
+      radial-gradient(circle at 88% -30%, rgb(103 196 71 / 0.16), transparent 44%),
+      radial-gradient(circle at -10% 120%, rgb(23 59 108 / 0.06), transparent 42%),
+      linear-gradient(180deg, #ffffff 0%, #f4faf1 100%);
+  }
+
+  .course-cover::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 0 0;
+    height: 1px;
+    background: linear-gradient(90deg, rgb(103 196 71 / 0.45), rgb(23 59 108 / 0.18) 48%, transparent 84%);
+  }
+
+  .course-breadcrumb ol {
+    @apply m-0 flex list-none flex-wrap items-center gap-1.5 p-0 text-sm;
+  }
+
+  .course-breadcrumb li {
+    @apply flex min-w-0 items-center gap-1.5 text-[#9aabbb];
+  }
+
+  .course-breadcrumb-link {
+    @apply text-[#5c6f82] transition-colors hover:text-[#173b6c] hover:underline underline-offset-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2;
+  }
+
+  .course-breadcrumb-current {
+    @apply max-w-[46ch] truncate font-medium text-[#173b6c];
+  }
+
+  .course-cover-grid {
+    @apply mt-5 grid items-center gap-8 lg:grid-cols-[minmax(0,1fr)_22rem] lg:gap-12;
+  }
+
+  .course-cover-label {
+    @apply text-xs font-bold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .course-cover-title {
+    @apply mt-3 text-[2rem] font-bold leading-[1.1] tracking-tight text-[#173b6c] lg:text-[2.75rem];
+  }
+
+  .course-cover-desc {
+    @apply mt-4 max-w-2xl text-base leading-7 text-[#5c6f82] sm:text-lg sm:leading-8;
+  }
+
+  .course-cover-meta {
+    @apply mt-5 flex flex-wrap items-center gap-x-4 gap-y-2;
+  }
+
+  .course-cover-teacher {
+    @apply inline-flex items-center gap-1.5 text-sm font-medium text-[#5c6f82];
+  }
+
+  .course-cover-actions {
+    @apply mt-7 flex flex-wrap items-center gap-3;
+  }
+
+  .course-cover-cta-text {
+    @apply px-1;
+  }
+
+  /* Bloque visual abstracto: laboratorio + nutrición en formas suaves. */
+  .course-cover-visual {
+    @apply relative hidden aspect-[4/3] max-h-[280px] overflow-hidden rounded-3xl border border-[#dce8d8] bg-[#fbfcf8] lg:block;
+    background-image: radial-gradient(circle at 1px 1px, rgb(23 59 108 / 0.06) 1px, transparent 0);
+    background-size: 18px 18px;
+  }
+
+  .course-visual-orb {
+    @apply pointer-events-none absolute rounded-full;
+  }
+
+  .course-visual-orb-green {
+    width: 13rem;
+    height: 13rem;
+    left: -3.5rem;
+    top: -4rem;
+    background-color: rgb(103 196 71 / 0.18);
+  }
+
+  .course-visual-orb-blue {
+    width: 11rem;
+    height: 11rem;
+    right: -3rem;
+    bottom: -4rem;
+    background-color: rgb(23 59 108 / 0.1);
+  }
+
+  .course-visual-rings {
+    @apply pointer-events-none absolute rounded-full;
+    width: 15rem;
+    height: 15rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    border: 1px dashed rgb(43 133 55 / 0.22);
+  }
+
+  .course-visual-chip {
+    @apply absolute z-10 grid place-items-center rounded-2xl border bg-white/90;
+    border-color: #dce8d8;
+    box-shadow: 0 8px 20px rgb(23 59 108 / 0.08);
+  }
+
+  .course-visual-chip-lg {
+    width: 5.5rem;
+    height: 5.5rem;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    color: #173b6c;
+    border-color: #cfe0d0;
+  }
+
+  .course-visual-chip-a { width: 3rem; height: 3rem; left: 12%; top: 16%; color: #2b8537; }
+  .course-visual-chip-b { width: 3rem; height: 3rem; left: 20%; bottom: 12%; color: #173b6c; }
+  .course-visual-chip-c { width: 3rem; height: 3rem; right: 12%; top: 22%; color: #2b8537; }
+
+  .course-body {
+    @apply py-10 lg:py-14;
+  }
+
+  /* Franja de datos reales: filete blanco con divisores tenues, sin cards. */
+  .course-summary {
+    @apply mb-10 grid grid-cols-2 gap-px overflow-hidden rounded-2xl border border-[#dce8d8] bg-[#dce8d8] lg:grid-cols-4;
+  }
+
+  .course-summary-item {
+    @apply flex items-start gap-3 bg-white px-5 py-5;
+  }
+
+  .course-summary-icon {
+    @apply grid size-10 shrink-0 place-items-center rounded-xl border;
+  }
+
+  .course-summary-icon-green {
+    color: #2b8537;
+    background-color: #eaf6e4;
+    border-color: #cfe6c8;
+  }
+
+  .course-summary-icon-blue {
+    color: #173b6c;
+    background-color: #e9f0f0;
+    border-color: #cfdcdc;
+  }
+
+  .course-summary-value {
+    @apply break-words text-base font-bold leading-6 text-[#173b6c];
+  }
+
+  .course-summary-label {
+    @apply mt-1 text-[11px] font-semibold uppercase tracking-[0.16em] text-[#8a9aab];
+  }
+
+  .course-layout {
+    @apply grid gap-8 lg:grid-cols-[minmax(0,1fr)_20rem] lg:gap-10;
+  }
+
+  /* Descripción en bloque editorial: blanco, borde suave y medida de lectura. */
+  .course-about {
+    @apply rounded-2xl border border-[#dce8d8] bg-white px-6 py-7 lg:px-8 lg:py-8;
+  }
+
+  .course-about-title {
+    @apply text-2xl font-bold tracking-tight text-[#173b6c];
+  }
+
+  .course-about-text {
+    @apply mt-4 max-w-[64ch] text-base leading-8 text-[#5c6f82];
+  }
+
+  .course-sims {
+    @apply mt-10 scroll-mt-24 lg:mt-12;
+  }
+
+  .course-sims-head {
+    @apply mb-6;
+  }
+
+  .course-sims-title {
+    @apply text-2xl font-bold tracking-tight text-[#173b6c];
+  }
+
+  .course-sims-sub {
+    @apply mt-2 max-w-2xl text-base leading-7 text-[#5c6f82];
+  }
+
+  .course-sims-list {
+    @apply grid list-none gap-4 p-0;
+  }
+
+  /* Card horizontal de simulación: icono con identidad, estado y CTA visible. */
+  .course-sim {
+    @apply flex flex-col gap-4 rounded-2xl border border-[#dce8d8] bg-white p-5 sm:flex-row sm:items-center sm:gap-5;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .course-sim:hover {
+    transform: translateY(-3px);
+    border-color: #bcd4b6;
+    box-shadow: 0 16px 32px rgb(23 59 108 / 0.11);
+  }
+
+  .course-sim-icon {
+    @apply grid size-14 shrink-0 place-items-center rounded-2xl border;
+  }
+
+  .course-sim-icon-green {
+    color: #2b8537;
+    background-color: #eaf6e4;
+    border-color: #cfe6c8;
+  }
+
+  .course-sim-icon-blue {
+    color: #173b6c;
+    background-color: #e9f0f0;
+    border-color: #cfdcdc;
+  }
+
+  .course-sim-body {
+    @apply min-w-0 flex-1;
+  }
+
+  .course-sim-top {
+    @apply flex flex-wrap items-center gap-2;
+  }
+
+  .course-sim-title {
+    @apply text-lg font-bold leading-snug text-[#173b6c];
+  }
+
+  .course-sim-desc {
+    @apply mt-2 text-sm leading-6 text-[#5c6f82];
+  }
+
+  .course-sim-action {
+    @apply flex shrink-0 flex-wrap items-center gap-3 sm:justify-end;
+  }
+
+  /* Aviso de inscripción en verde muy pálido, sin card pesada. */
+  .course-enroll-panel {
+    @apply flex flex-col gap-4 rounded-2xl border border-[#cfe6c8] bg-[#eaf6e4] p-6 sm:flex-row sm:items-center sm:gap-5;
+  }
+
+  .course-enroll-icon {
+    @apply grid size-11 shrink-0 place-items-center rounded-xl border border-[#cfe6c8] bg-white text-[#2b8537];
+  }
+
+  .course-enroll-body {
+    @apply min-w-0 flex-1;
+  }
+
+  .course-enroll-title {
+    @apply text-lg font-bold text-[#173b6c];
+  }
+
+  .course-enroll-text {
+    @apply mt-1 text-sm leading-6 text-[#5c6f82];
+  }
+
+  /* Panel lateral: marfil verdoso, liviano y sticky en escritorio. */
+  .course-side {
+    @apply self-start rounded-2xl border border-[#dce8d8] bg-[#f4faf1] p-5 lg:sticky lg:top-24;
+  }
+
+  .course-side-block + .course-side-block {
+    @apply mt-5 border-t border-[#dce8d8] pt-5;
+  }
+
+  .course-side-label {
+    @apply inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-[#2b8537];
+  }
+
+  .course-side-value {
+    @apply mt-2 flex items-center gap-2 text-sm font-semibold leading-6 text-[#173b6c];
+  }
+
+  .course-side-text {
+    @apply mt-2 text-sm leading-6 text-[#5c6f82];
+  }
+
+  .course-side-actions {
+    @apply flex flex-col gap-2;
+  }
+
+  .course-side-action {
+    @apply mt-3;
+  }
+
+  /* CTA de texto: sin caja, con flecha que avanza un píxel al pasar. */
+  .course-cta-text {
+    @apply inline-flex items-center gap-1.5 text-sm font-semibold text-[#173b6c] transition-colors hover:text-[#2b8537] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2;
+  }
+
+  .course-cta-arrow {
+    @apply shrink-0;
+    transition: transform 200ms ease;
+  }
+
+  .course-cta-text:hover .course-cta-arrow {
+    transform: translateX(2px);
+  }
+
+  /* Carga: portada y cards en espera, sin spinner. */
+  .course-cover-loading {
+    @apply py-10;
+  }
+
+  .course-skeleton-line {
+    display: block;
+    height: 1rem;
+    max-width: 40rem;
+    margin-top: 0.75rem;
+    border-radius: 0.5rem;
+    background: linear-gradient(100deg, #f2f9ee 30%, #e8f4e0 50%, #f2f9ee 70%);
+    background-size: 200% 100%;
+    animation: course-skeleton 1.4s ease-in-out infinite;
+  }
+
+  .course-skeleton-line-sm { width: 7rem; height: 0.7rem; margin-top: 0; }
+  .course-skeleton-line-lg { width: 24rem; height: 2rem; margin-top: 1.25rem; }
+
+  .course-sim.course-skeleton {
+    min-height: 5.5rem;
+    border-color: #e6efdf;
+    background: linear-gradient(100deg, #f4faf1 30%, #eaf4e4 50%, #f4faf1 70%);
+    background-size: 200% 100%;
+    animation: course-skeleton 1.4s ease-in-out infinite;
+    box-shadow: none;
+  }
+
+  .course-sim.course-skeleton:hover {
+    transform: none;
+    box-shadow: none;
+  }
+
+  .course-loading-text {
+    @apply mb-5 text-sm font-medium text-[#5c6f82];
+  }
+
+  @media (max-width: 639.98px) {
+    .course-cover { padding: 2rem 0 2.25rem; }
+    .course-cover-title { font-size: 1.85rem; }
+    .course-summary { @apply text-sm; }
+    .course-sim-action .course-cta-solid { @apply w-full; }
+  }
+
+  /* Simulación conversacional ----------------------------------------------
+   * Identidad Yumibiotic: navy #173b6c para jerarquía, verde profundo #2b8537
+   * para la acción, verde brillante #67c447 para acentos y marfil #fbfcf8 de
+   * fondo. La vista es una experiencia a pantalla completa: la conversación es
+   * la protagonista y la información del caso vive en una sidebar de acordeones. */
+  .sim-page {
+    position: fixed;
+    inset: 0;
+    top: 4rem;
+    z-index: 20;
+    background-color: #fbfcf8;
+  }
+
+  .sim-app {
+    @apply mx-auto flex h-full w-full max-w-[1500px] flex-col gap-4 px-4 py-4 sm:px-6 sm:py-4 lg:px-10;
+    height: 100%;
+    overflow: hidden;
+  }
+
+  .sim-app-center { @apply items-center justify-center; }
+
+  /* Cabecera compacta: breadcrumb + badge + título real. */
+  .sim-header {
+    @apply flex shrink-0 flex-wrap items-end justify-between gap-4;
+  }
+
+  .sim-header-main { @apply flex min-w-0 flex-col gap-1; }
+
+  .sim-breadcrumb {
+    @apply flex flex-wrap items-center gap-1.5 text-xs font-medium text-[#5c6f82];
+  }
+
+  .sim-breadcrumb-link {
+    @apply rounded transition-colors hover:text-[#2b8537] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbfcf8];
+  }
+
+  .sim-breadcrumb-sep { @apply text-[#c3d2bd]; }
+  .sim-breadcrumb-current { @apply font-semibold text-[#173b6c]; }
+
+  .sim-badge {
+    @apply inline-flex w-fit items-center gap-1.5 rounded-full border border-[#cfe6c8] bg-[#eaf6e4] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#2b8537];
+  }
+
+  .sim-title {
+    @apply truncate text-2xl font-bold tracking-tight text-[#173b6c] sm:text-[1.75rem];
+  }
+
+  .sim-subtitle { @apply truncate text-sm text-[#5c6f82]; }
+
+  .sim-back {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dce8d8] bg-white px-3.5 py-2 text-sm font-semibold text-[#173b6c] transition-colors hover:border-[#bcd4b6] hover:bg-[#eaf6e4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbfcf8];
+  }
+
+  /* Cuerpo: sidebar informativa (~28-30%) + chat protagonista (~70-72%). */
+  .sim-body {
+    @apply grid min-h-0 flex-1 gap-5;
+    grid-template-columns: minmax(288px, 340px) minmax(0, 1fr);
+    overflow: hidden;
+  }
+
+  /* --- Sidebar: acordeones del caso + acceso al tutor IA ------------------ */
+  .sim-sidebar {
+    @apply flex min-h-0 flex-col gap-2.5 overflow-y-auto pr-1;
+    scrollbar-width: thin;
+    scrollbar-color: #c8dcc2 transparent;
+  }
+
+  .sim-sidebar::-webkit-scrollbar { width: 8px; }
+  .sim-sidebar::-webkit-scrollbar-thumb {
+    background-color: #c8dcc2;
+    border: 2px solid #fbfcf8;
+    border-radius: 9999px;
+  }
+  .sim-sidebar::-webkit-scrollbar-thumb:hover { background-color: #a9cda0; }
+
+  /* Acordeón reusable del caso. */
+  .sim-acc {
+    @apply shrink-0 overflow-hidden rounded-xl border border-[#e2ecdd] bg-white transition-shadow;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.03);
+  }
+
+  .sim-acc-head {
+    @apply flex w-full items-center gap-2.5 px-3.5 py-3 text-left transition-colors hover:bg-[#f4faf1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[#173b6c];
+    cursor: pointer;
+    background: transparent;
+    border: 0;
+  }
+
+  .sim-acc-icon {
+    @apply grid size-8 shrink-0 place-items-center rounded-full border;
+  }
+
+  .sim-acc-icon-green { color: #2b8537; background-color: #eaf6e4; border-color: #cfe6c8; }
+  .sim-acc-icon-blue { color: #1769aa; background-color: #eef6fb; border-color: #d5e4ee; }
+  .sim-acc-icon-soft { color: #2b8537; background-color: #f4faf1; border-color: #dce8d8; }
+
+  .sim-acc-headtext { @apply flex min-w-0 flex-1 flex-col; }
+
+  .sim-acc-title { @apply text-sm font-bold leading-tight text-[#173b6c]; }
+  .sim-acc-hint { @apply text-[11px] leading-tight text-[#8797a6]; }
+
+  .sim-acc-chevron {
+    @apply shrink-0 text-[#aab6c0] transition-transform duration-200;
+  }
+
+  .sim-acc-open .sim-acc-chevron { transform: rotate(180deg); color: #2b8537; }
+
+  /* Panel plegable con transición suave de altura. */
+  .sim-acc-panel {
+    display: grid;
+    grid-template-rows: 0fr;
+    transition: grid-template-rows 200ms ease;
+  }
+
+  .sim-acc-open .sim-acc-panel { grid-template-rows: 1fr; }
+
+  .sim-acc-content {
+    overflow: hidden;
+    min-height: 0;
+  }
+
+  .sim-acc-open .sim-acc-content {
+    @apply border-t border-[#eef4ea];
+  }
+
+  .sim-acc-content > * { @apply px-3.5 py-3; }
+
+  .sim-acc-content :where(p, ul, h4, li) { @apply text-sm leading-6 text-[#5c6f82]; }
+
+  .sim-acc-content :where(ul) { @apply list-disc space-y-1.5 pl-7; }
+
+  .sim-acc-content :where(p + p, p + ul, ul + p) { padding-top: 0; }
+
+  .sim-acc-content-guide { @apply bg-[#f4faf1]; }
+
+  .sim-acc-content-guide :where(kbd) {
+    @apply rounded border border-[#dce8d8] bg-white px-1.5 py-0.5 text-[11px] font-semibold text-[#173b6c];
+    font-family: inherit;
+  }
+
+  /* Tutor IA: bloque compacto, integrado en el flujo de la sidebar. */
+  .sim-key {
+    @apply shrink-0 rounded-xl border border-[#e2ecdd] bg-[#f4faf1] p-3.5;
+  }
+
+  .sim-key-ok { @apply bg-white; }
+
+  .sim-key-head { @apply flex items-center gap-2.5; }
+
+  .sim-key-icon {
+    @apply grid size-7 shrink-0 place-items-center rounded-lg border border-[#cfdcdc] bg-white text-[#173b6c];
+  }
+
+  .sim-key-headtext { @apply min-w-0; }
+  .sim-key-title { @apply text-sm font-bold leading-tight text-[#173b6c]; }
+  .sim-key-sub { @apply text-[11px] leading-tight text-[#5c6f82]; }
+
+  .sim-key-form { @apply mt-2.5 space-y-2.5; }
+
+  .sim-key-actions { @apply flex flex-wrap items-center gap-2; }
+
+  .sim-key-connected { @apply flex flex-wrap items-center justify-between gap-2; }
+
+  .sim-key-status {
+    @apply inline-flex items-center gap-1.5 rounded-full border border-[#cfe6c8] bg-[#eaf6e4] px-2.5 py-1 text-xs font-semibold text-[#1f6b3a];
+  }
+
+  .sim-key-status-dot {
+    @apply size-1.5 rounded-full bg-[#2b8537];
+  }
+
+  /* --- Chat protagonista -------------------------------------------------- */
+  .sim-chat {
+    @apply flex min-h-0 flex-col overflow-hidden rounded-2xl border border-[#e2ecdd] bg-white;
+    box-shadow: 0 8px 24px rgb(23 59 108 / 0.05);
+  }
+
+  .sim-chat-head {
+    @apply flex shrink-0 flex-wrap items-center justify-between gap-3 border-b border-[#eef4ea] bg-[#f4f9fc] px-5 py-2.5 sm:px-6;
+  }
+
+  .sim-chat-tutor { @apply flex min-w-0 items-center gap-3; }
+
+  .sim-chat-avatar {
+    @apply grid size-11 shrink-0 place-items-center overflow-hidden rounded-xl border border-[#cfe6c8] bg-[#eaf6e4];
+    box-shadow: 0 4px 12px rgb(43 133 55 / 0.15);
+  }
+
+  .sim-chat-id { @apply min-w-0; }
+
+  .sim-chat-name { @apply text-[15px] font-bold leading-tight tracking-tight text-[#173b6c]; }
+
+  .sim-chat-role { @apply text-xs leading-snug text-[#5c6f82]; }
+
+  .sim-chat-online {
+    @apply mt-0.5 inline-flex items-center gap-1.5 text-[11px] font-semibold text-[#1f6b3a];
+  }
+
+  .sim-chat-online-dot {
+    @apply size-1.5 rounded-full bg-[#2b8537];
+    box-shadow: 0 0 0 3px rgb(103 196 71 / 0.2);
+  }
+
+  /* Botón de exportar en verde (solo visual, sin acción real aún). */
+  .sim-export {
+    @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
+    background-color: #2b8537;
+    box-shadow: 0 4px 10px rgb(43 133 55 / 0.2);
+    cursor: pointer;
+    border: 0;
+  }
+
+  .sim-export:hover { background-color: #237a32; }
+  .sim-export:focus-visible { --tw-ring-color: #173b6c; --tw-ring-offset-color: #ffffff; }
+
+  /* Estado vacío: invita a empezar sin verse frío. */
+  .sim-chat-empty {
+    @apply flex flex-1 flex-col items-center justify-center px-6 py-10 text-center;
+  }
+
+  .sim-chat-empty-icon {
+    @apply grid size-16 place-items-center overflow-hidden rounded-full border border-[#cfe6c8] bg-[#eaf6e4];
+    box-shadow: 0 8px 20px rgb(43 133 55 / 0.12);
+  }
+
+  .sim-chat-empty-title {
+    @apply mt-4 text-lg font-bold tracking-tight text-[#173b6c];
+  }
+
+  .sim-chat-empty-text {
+    @apply mt-2 max-w-md text-sm leading-6 text-[#5c6f82];
+  }
+
+  .sim-start-cta { @apply mt-5; }
+
+  /* Hilo de mensajes: el único scroll de la pantalla. */
+  .sim-thread {
+    @apply flex min-h-0 flex-1 flex-col gap-4 overflow-y-auto px-5 py-5 sm:px-8 sm:py-6;
+    background-color: #fdfefb;
+    scrollbar-width: thin;
+    scrollbar-color: #c8dcc2 transparent;
+  }
+
+  .sim-thread::-webkit-scrollbar { width: 10px; }
+  .sim-thread::-webkit-scrollbar-thumb {
+    background-color: #c8dcc2;
+    border: 3px solid #fdfefb;
+    border-radius: 9999px;
+  }
+  .sim-thread::-webkit-scrollbar-thumb:hover { background-color: #a9cda0; }
+
+  .sim-row { @apply flex items-start gap-2.5; }
+  .sim-row-student { @apply flex-row-reverse; }
+
+  .sim-avatar {
+    @apply grid size-8 shrink-0 place-items-center overflow-hidden rounded-full border;
+  }
+
+  .sim-avatar-tutor { @apply border-[#cfe6c8] bg-[#eaf6e4]; }
+  .sim-avatar-student { @apply border-[#cfdcdc] bg-[#eef6fb] text-[#1769aa]; }
+
+  .sim-bubble {
+    @apply flex max-w-[68%] flex-col rounded-2xl border px-3.5 py-2.5;
+  }
+
+  .sim-row-student .sim-bubble { @apply max-w-[62%]; }
+
+  /* Tutor: azul muy claro, texto navy. */
+  .sim-bubble-tutor {
+    @apply rounded-tl-sm border-[#d5e4ee] bg-[#eef6fb];
+  }
+
+  /* Estudiante: verde muy claro, texto navy. */
+  .sim-bubble-student {
+    @apply rounded-tr-sm border-[#cfe6c8] bg-[#eaf6e4];
+  }
+
+  .sim-bubble-label {
+    @apply mb-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#2b8537];
+  }
+
+  .sim-bubble-student .sim-bubble-label { color: #5c6f82; }
+
+  .sim-bubble-text {
+    @apply whitespace-pre-wrap text-sm leading-6 text-[#173b6c];
+  }
+
+  .sim-bubble-time {
+    @apply mt-1 self-end text-[10px] font-normal text-[#9aa8b4];
+  }
+
+  .sim-bubble-typing { @apply inline-flex w-fit flex-row items-center gap-1.5; }
+
+  .sim-typing-dot {
+    @apply size-2 rounded-full bg-[#67c447];
+    animation: sim-typing 1.2s ease-in-out infinite;
+  }
+
+  .sim-typing-dot:nth-child(2) { animation-delay: 0.15s; }
+  .sim-typing-dot:nth-child(3) { animation-delay: 0.3s; }
+
+  /* Compositor: barra integrada con el chat. */
+  .sim-composer {
+    @apply shrink-0 space-y-1.5 border-t border-[#eef4ea] bg-[#fafcfa] px-5 py-3 sm:px-8;
+  }
+
+  .sim-composer-box {
+    @apply flex items-end gap-2.5 rounded-xl border border-[#e2ecdd] bg-white px-3.5 py-1.5 transition-colors focus-within:border-[#67c447];
+  }
+
+  .sim-composer-input {
+    @apply max-h-40 min-h-[2.25rem] flex-1 resize-none bg-transparent py-2 text-sm leading-6 text-[#173b6c] outline-none placeholder:text-[#9aa8b4];
+  }
+
+  .sim-composer-input:disabled { @apply cursor-not-allowed opacity-60; }
+
+  .sim-composer-note {
+    @apply flex flex-wrap items-center gap-1.5 px-1 text-[11px] font-normal text-[#9aa8b4];
+  }
+
+  .sim-send-cta {
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c] focus-visible:!ring-offset-white;
+    box-shadow: 0 4px 10px rgb(43 133 55 / 0.2);
+  }
+
+  .sim-msg { @apply text-xs; }
+
+  /* Carga: orbe suave, sin spinner. */
+  .sim-loading {
+    @apply flex h-full flex-col items-center justify-center gap-4 px-5 text-center;
+  }
+
+  .sim-loading-orb {
+    @apply size-14 rounded-full border border-[#cfe6c8] bg-[#eaf6e4];
+    animation: sim-pulse 1.4s ease-in-out infinite;
+  }
+
+  .sim-loading-text {
+    @apply text-sm font-medium text-[#5c6f82];
+  }
+
+  /* Tablet: sidebar algo más estrecha, el chat mantiene prioridad. */
+  @media (max-width: 1279.98px) {
+    .sim-body { grid-template-columns: minmax(260px, 296px) minmax(0, 1fr); gap: 1rem; }
+  }
+
+  /* Mobile: una columna, caso arriba y chat abajo. */
+  @media (max-width: 1023.98px) {
+    .sim-page { position: static; top: auto; overflow: visible; }
+    .sim-app { @apply h-auto min-h-full overflow-visible; }
+    .sim-body { @apply flex flex-col; overflow: visible; }
+    .sim-sidebar { @apply flex-none overflow-visible pr-0; }
+    .sim-key { @apply mt-0; }
+    .sim-chat { @apply min-h-[70vh]; }
+    .sim-bubble,
+    .sim-row-student .sim-bubble { @apply max-w-[88%]; }
+    .sim-export span { @apply hidden sm:inline; }
+  }
+}
+
+@keyframes sim-typing {
+  0%, 60%, 100% { opacity: 0.35; transform: translateY(0); }
+  30% { opacity: 1; transform: translateY(-2px); }
+}
+
+@keyframes sim-pulse {
+  0%, 100% { opacity: 0.6; transform: scale(0.94); }
+  50% { opacity: 1; transform: scale(1); }
 }
 
 @keyframes home-reveal {
   from { opacity: 0; transform: translateY(7px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes course-skeleton {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useMemo, useRef, useState } from 'react';
-import { CheckCircle2, Info, X } from 'lucide-react';
+import { AlertCircle, CheckCircle2, Info, X } from 'lucide-react';
 
 /**
  * Confirmaciones visuales efímeras. Sustituyen a los `alert()` del navegador,
@@ -10,6 +10,7 @@ const ToastContext = createContext(null);
 
 const TONES = {
   success: { classes: 'border-emerald-200 bg-white text-success', Icon: CheckCircle2 },
+  error: { classes: 'border-red-200 bg-white text-red-700', Icon: AlertCircle },
   info: { classes: 'border-blue-200 bg-white text-action', Icon: Info },
 };
 

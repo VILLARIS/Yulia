@@ -69,68 +69,96 @@ export function clearSession(response) {
   });
 }
 
+const SESSION_ERRORS = {
+  missing: 'Inicia sesión para continuar',
+  invalid: 'Sesión inválida',
+  expired: 'Sesión caducada',
+  unavailable: 'Usuario no disponible',
+};
+
+/**
+ * Resuelve la sesión de la petición sin decidir nada sobre la respuesta.
+ * Devuelve el usuario cuando el token es válido y, si no lo es, el motivo, de
+ * modo que las capas que la consumen puedan exigir sesión o tolerar su ausencia.
+ */
+async function resolveUser(request) {
+  const rawCookie = request.headers.cookie
+    ?.split(';')
+    .map((part) => part.trim())
+    .find((part) => part.startsWith(`${cookieName}=`));
+
+  const token = rawCookie?.slice(cookieName.length + 1);
+
+  const [payload, mac] = token?.split('.') ?? [];
+
+  if (!payload || !mac) return { reason: 'missing' };
+
+  const expected = Buffer.from(signature(payload));
+  const received = Buffer.from(mac);
+
+  if (
+    expected.length !== received.length ||
+    !timingSafeEqual(expected, received)
+  ) {
+    return { reason: 'invalid' };
+  }
+
+  let data;
+  try {
+    data = JSON.parse(Buffer.from(payload, 'base64url').toString('utf8'));
+  } catch {
+    return { reason: 'invalid' };
+  }
+
+  if (!data.id || data.exp <= Date.now()) return { reason: 'expired' };
+
+  const { rows } = await query(
+    `
+      SELECT
+        id,
+        display_name AS name,
+        email,
+        role,
+        created_at AS "createdAt"
+      FROM users
+      WHERE id = $1
+        AND active = true
+    `,
+    [data.id],
+  );
+
+  if (!rows[0]) return { reason: 'unavailable' };
+
+  return { user: rows[0] };
+}
+
 export async function requireUser(request, response, next) {
   try {
-    const rawCookie = request.headers.cookie
-      ?.split(';')
-      .map((part) => part.trim())
-      .find((part) => part.startsWith(`${cookieName}=`));
+    const { user, reason } = await resolveUser(request);
 
-    const token = rawCookie?.slice(cookieName.length + 1);
-
-    const [payload, mac] = token?.split('.') ?? [];
-
-    if (!payload || !mac) {
+    if (!user) {
       return response
         .status(401)
-        .json({ error: 'Inicia sesión para continuar' });
+        .json({ error: SESSION_ERRORS[reason] ?? SESSION_ERRORS.missing });
     }
 
-    const expected = Buffer.from(signature(payload));
-    const received = Buffer.from(mac);
+    request.user = user;
 
-    if (
-      expected.length !== received.length ||
-      !timingSafeEqual(expected, received)
-    ) {
-      return response
-        .status(401)
-        .json({ error: 'Sesión inválida' });
-    }
+    next();
+  } catch (error) {
+    next(error);
+  }
+}
 
-    const data = JSON.parse(
-      Buffer.from(payload, 'base64url').toString('utf8'),
-    );
-
-    if (!data.id || data.exp <= Date.now()) {
-      return response
-        .status(401)
-        .json({ error: 'Sesión caducada' });
-    }
-
-    const { rows } = await query(
-      `
-        SELECT
-          id,
-          display_name AS name,
-          email,
-          role,
-          created_at AS "createdAt"
-        FROM users
-        WHERE id = $1
-          AND active = true
-      `,
-      [data.id],
-    );
-
-    if (!rows[0]) {
-      return response
-        .status(401)
-        .json({ error: 'Usuario no disponible' });
-    }
-
-    request.user = rows[0];
-
+/**
+ * Variante tolerante: adjunta `request.user` cuando hay una sesión válida y,
+ * cuando no la hay, deja continuar la petición como visitante anónimo. Se usa
+ * solo en lecturas públicas que personalizan su resultado si hay sesión.
+ */
+export async function optionalUser(request, _response, next) {
+  try {
+    const { user } = await resolveUser(request);
+    if (user) request.user = user;
     next();
   } catch (error) {
     next(error);

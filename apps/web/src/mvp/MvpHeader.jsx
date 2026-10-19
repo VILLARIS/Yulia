@@ -11,10 +11,9 @@ export function MvpHeader() {
   const location = useLocation();
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef(null);
-  const coursePath = user ? user.role === 'teacher' ? '/docente' : '/estudiante' : '/acceso';
   const active = location.pathname === '/'
     ? location.hash === '#acerca' ? 'about' : 'home'
-    : location.pathname.startsWith('/docente') || location.pathname.startsWith('/estudiante')
+    : location.pathname.startsWith('/cursos') || location.pathname.startsWith('/docente') || location.pathname.startsWith('/estudiante')
       ? 'courses'
       : location.pathname.startsWith('/videos')
         ? 'videos'
@@ -22,7 +21,7 @@ export function MvpHeader() {
 
   const links = [
     { key: 'home', to: '/', label: 'Inicio', current: 'page' },
-    { key: 'courses', to: coursePath, label: 'Cursos', current: 'page' },
+    { key: 'courses', to: '/cursos', label: 'Cursos', current: 'page' },
     { key: 'videos', to: '/videos', label: 'Videos', current: 'page' },
     { key: 'about', to: '/#acerca', label: 'Acerca de', current: 'location' },
   ];
@@ -50,7 +49,7 @@ export function MvpHeader() {
   }, [menuOpen]);
 
   return (
-    <header className="mvp-header sticky top-0 z-30 border-b border-[#e9eff4] bg-white">
+    <header className="mvp-header sticky top-0 z-30 border-b border-[#dce8d8] bg-[#fbfcf8]">
       <div className="site-container mvp-header-inner">
         <Link to="/" className="mvp-brand" aria-label="Bromatología y Nutrición. Ir al inicio">
           <img src={yuliaLogo} alt="" className="mvp-brand-logo" />
@@ -107,7 +106,7 @@ export function MvpHeader() {
                 </li>
               ))}
             </ul>
-            <div className="mt-3 border-t border-[#e9eff4] pt-3">
+            <div className="mt-3 border-t border-[#dce8d8] pt-3">
               {user ? (
                 <button type="button" onClick={handleLogout} className="mvp-mobile-link w-full">Salir</button>
               ) : (

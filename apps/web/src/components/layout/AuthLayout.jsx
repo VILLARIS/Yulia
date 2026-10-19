@@ -41,7 +41,7 @@ export function AuthLayout({ mode = 'login', title, subtitle, children, footer }
   const visual = VISUALS[mode] ?? VISUALS.login;
 
   return (
-    <div className="auth-page flex min-h-screen w-full flex-col bg-white md:grid md:grid-cols-2">
+    <div className="auth-page flex min-h-screen w-full flex-col md:grid md:grid-cols-2">
       <aside className="auth-visual relative hidden min-h-screen overflow-hidden md:flex md:flex-col md:justify-end">
         <img src={visual.image} alt={visual.alt} className="absolute inset-0 size-full object-cover object-top" />
         <div className="auth-visual-overlay absolute inset-0" aria-hidden="true" />
@@ -69,24 +69,24 @@ export function AuthLayout({ mode = 'login', title, subtitle, children, footer }
           <div className="w-full max-w-[440px]">
             <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-2">
               <Link to={APP_ROUTES.home} className="inline-flex items-center gap-2.5 rounded-lg">
-                <img src={yuliaLogo} alt="" className="size-9 rounded-lg border border-slate-200 object-cover" />
+                <img src={yuliaLogo} alt="" className="size-9 rounded-lg border border-[#dce8d8] object-cover" />
                 <span className="flex flex-col leading-tight">
-                  <strong className="text-base tracking-[0.08em] text-navy">YULIA</strong>
-                  <small className="text-[10px] font-semibold tracking-[0.04em] text-slate-500">Bromatología y Nutrición</small>
+                  <strong className="auth-brand-name text-base tracking-[0.08em]">YULIA</strong>
+                  <small className="auth-brand-sub text-[10px] font-semibold tracking-[0.04em]">Bromatología y Nutrición</small>
                 </span>
               </Link>
-              <Link to={APP_ROUTES.home} className="auth-return inline-flex items-center gap-1.5 text-sm text-slate-600">
+              <Link to={APP_ROUTES.home} className="auth-return inline-flex items-center gap-1.5 text-sm">
                 <ArrowLeft size={15} aria-hidden="true" />
                 Volver al inicio
               </Link>
             </div>
-            <h1 className="mt-9 text-3xl font-semibold tracking-tight text-navy sm:text-[2.15rem]">{title}</h1>
-            {subtitle ? <p className="mt-2 text-base leading-7 text-slate-600">{subtitle}</p> : null}
+            <h1 className="auth-title mt-9 text-3xl font-semibold tracking-tight sm:text-[2.15rem]">{title}</h1>
+            {subtitle ? <p className="auth-subtitle mt-2 text-base leading-7">{subtitle}</p> : null}
             <div className="mt-8">{children}</div>
-            {footer ? <div className="mt-6 text-center text-sm text-slate-600">{footer}</div> : null}
+            {footer ? <div className="auth-footer mt-6 text-center text-sm">{footer}</div> : null}
           </div>
         </div>
-        <p className="px-5 pb-5 text-center text-xs text-slate-500">© 2026 Yulia Bromatología y Nutrición.</p>
+        <p className="auth-copy px-5 pb-5 text-center text-xs">© 2026 Yulia Bromatología y Nutrición.</p>
       </div>
 
       <div className="auth-mobile-banner relative h-56 overflow-hidden md:hidden">

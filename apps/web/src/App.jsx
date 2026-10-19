@@ -1,5 +1,6 @@
 import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './mvp/AuthContext';
+import { ToastProvider } from './context/ToastContext';
 import { AuthPage } from './mvp/AuthPage';
 import { CourseEditorPage } from './mvp/CourseEditorPage';
 import { CoursePage } from './mvp/CoursePage';
@@ -13,11 +14,12 @@ import { VideosPage } from './mvp/VideosPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
 export function App() {
-  return <AuthProvider><Routes>
+  return <ToastProvider><AuthProvider><Routes>
     <Route element={<MvpShell />}>
       <Route path="/" element={<HomePage />} />
       <Route path="/acceso" element={<AuthPage mode="login" />} />
       <Route path="/registro" element={<AuthPage mode="register" />} />
+      <Route path="/cursos" element={<CoursesPage />} />
       <Route path="/videos" element={<VideosPage />} />
       <Route element={<RouteGuard role="teacher" />}>
         <Route path="/docente" element={<CoursesPage />} />
@@ -34,5 +36,5 @@ export function App() {
       </Route>
       <Route path="*" element={<NotFoundPage />} />
     </Route>
-  </Routes></AuthProvider>;
+  </Routes></AuthProvider></ToastProvider>;
 }

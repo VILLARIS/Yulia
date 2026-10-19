@@ -13,6 +13,18 @@ const teacherSteps = ['Crea un curso', 'Diseña simulaciones', 'Publica videos c
 
 const teacherBenefits = ['Crear cursos', 'Diseñar simulaciones', 'Compartir videos', 'Revisar participación y progreso'];
 
+/*
+ * Los tonos de los paneles y de los reels se aplican con plantillas
+ * (`home-experience-${tone}`), así que las clases resultantes nunca aparecen
+ * como texto literal y Tailwind las purga al compilar. Estas listas las
+ * enumeran completas para que sobrevivan al purgado en producción.
+ */
+const experienceTones = ['home-experience-student', 'home-experience-teacher'];
+const tagTones = ['home-tag-student', 'home-tag-teacher'];
+const pathTones = ['home-path-student', 'home-path-teacher'];
+const reelTones = ['home-reel-green', 'home-reel-blue', 'home-reel-ivory'];
+
+
 const videos = [
   { title: '¿Qué son los macronutrientes?', duration: '3:24', tone: 'green', icon: BookOpen },
   { title: 'Cómo leer una etiqueta nutricional', duration: '4:10', tone: 'blue', icon: FlaskConical },
@@ -30,8 +42,8 @@ function SectionHeading({ eyebrow, title, description }) {
   return (
     <div className="mx-auto max-w-2xl text-center">
       {eyebrow ? <p className="home-eyebrow">{eyebrow}</p> : null}
-      <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-navy sm:text-[2.05rem] lg:text-[2.3rem]">{title}</h2>
-      {description ? <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">{description}</p> : null}
+      <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-[#173b6c] sm:text-[2.05rem] lg:text-[2.3rem]">{title}</h2>
+      {description ? <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[#5c6f82]">{description}</p> : null}
     </div>
   );
 }
@@ -76,10 +88,10 @@ export function HomePage() {
       <div className="site-container home-hero-stage">
         <div className="home-hero-copy">
           <p className="eyebrow text-xs tracking-[0.14em] sm:text-[0.8125rem]">Aprendizaje aplicado</p>
-          <h1 aria-label="Aprende bromatología y nutrición a través de casos reales" className="mt-4 text-[2.5rem] font-bold leading-[1.08] tracking-tight text-navy sm:text-[3rem] lg:text-[3.3rem] xl:text-[3.55rem]">
-            Aprende bromatología y nutrición<br className="hidden sm:block" /> <span className="text-brand-ink">a través de casos reales</span>
+          <h1 aria-label="Aprende bromatología y nutrición a través de casos reales" className="mt-4 text-[2.5rem] font-bold leading-[1.08] tracking-tight text-[#173b6c] sm:text-[3rem] lg:text-[3.3rem] xl:text-[3.55rem]">
+            Aprende bromatología y nutrición<br className="hidden sm:block" /> <span className="text-[#2b8537]">a través de casos reales</span>
           </h1>
-          <p className="mt-6 max-w-[520px] text-base leading-7 text-slate-600 sm:text-lg sm:leading-8">Cursos, simulaciones conversacionales y contenido breve para aprender aplicando.</p>
+          <p className="mt-6 max-w-[520px] text-base leading-7 text-[#5c6f82] sm:text-lg sm:leading-8">Cursos, simulaciones conversacionales y contenido breve para aprender aplicando.</p>
           <div className="mt-8 flex flex-col gap-3 sm:flex-row">
             <Button to={coursePath} size="lg" className="home-cta-primary w-full sm:w-auto">Explorar cursos</Button>
             <Button to="/acceso" variant="secondary" size="lg" className="home-cta-secondary w-full sm:w-auto">Ver simulaciones</Button>
@@ -196,8 +208,8 @@ export function HomePage() {
       <div className="site-container grid items-center gap-10 lg:grid-cols-2 lg:gap-14">
         <div>
           <p className="home-eyebrow">Simulación interactiva</p>
-          <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-navy sm:text-[2.05rem] lg:text-[2.3rem]">Aprende conversando</h2>
-          <p className="mt-4 max-w-md text-base leading-7 text-[#42566b]">Cada simulación te guía con preguntas, pistas y retroalimentación para ayudarte a razonar.</p>
+          <h2 className="mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-[#173b6c] sm:text-[2.05rem] lg:text-[2.3rem]">Aprende conversando</h2>
+          <p className="mt-4 max-w-md text-base leading-7 text-[#5c6f82]">Cada simulación te guía con preguntas, pistas y retroalimentación para ayudarte a razonar.</p>
           <Button to={coursePath} size="lg" className="mt-7">Explorar simulaciones</Button>
         </div>
         <div className="home-chat" aria-hidden="true">
@@ -228,8 +240,8 @@ export function HomePage() {
         <div className="home-teacher">
           <div>
             <p className="home-eyebrow home-eyebrow-amber">Para docentes</p>
-            <h2 className="mt-3 text-[1.6rem] font-semibold leading-[1.2] tracking-tight text-navy sm:text-[1.9rem] lg:text-[2.1rem]">Crea experiencias de aprendizaje que van más allá de una clase</h2>
-            <p className="mt-4 max-w-lg text-base leading-7 text-slate-600">Organiza cursos, diseña casos, publica simulaciones y comparte contenido con tus estudiantes desde un mismo lugar.</p>
+            <h2 className="mt-3 text-[1.6rem] font-semibold leading-[1.2] tracking-tight text-[#173b6c] sm:text-[1.9rem] lg:text-[2.1rem]">Crea experiencias de aprendizaje que van más allá de una clase</h2>
+            <p className="mt-4 max-w-lg text-base leading-7 text-[#5c6f82]">Organiza cursos, diseña casos, publica simulaciones y comparte contenido con tus estudiantes desde un mismo lugar.</p>
             <ul className="home-check-list">
               {teacherBenefits.map((benefit) => (
                 <li key={benefit} className="home-check">
@@ -255,8 +267,8 @@ export function HomePage() {
           <Leaf size={120} strokeWidth={0.9} className="home-final-leaf home-final-leaf-left" aria-hidden="true" />
           <Leaf size={96} strokeWidth={0.9} className="home-final-leaf home-final-leaf-right" aria-hidden="true" />
           <div className="relative z-10">
-            <h2 className="mx-auto max-w-2xl text-[1.75rem] font-semibold leading-[1.18] tracking-tight text-navy sm:text-[2.1rem] lg:text-[2.35rem]">Aprender nutrición también puede ser una experiencia</h2>
-            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-slate-600">Explora cursos, practica con casos y descubre una forma más activa de aprender.</p>
+            <h2 className="mx-auto max-w-2xl text-[1.75rem] font-semibold leading-[1.18] tracking-tight text-[#173b6c] sm:text-[2.1rem] lg:text-[2.35rem]">Aprender nutrición también puede ser una experiencia</h2>
+            <p className="mx-auto mt-4 max-w-xl text-base leading-7 text-[#5c6f82]">Explora cursos, practica con casos y descubre una forma más activa de aprender.</p>
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Button to="/acceso" size="lg" className="home-cta-green w-full sm:w-auto">Comenzar</Button>
               <Button to={coursePath} variant="secondary" size="lg" className="home-cta-outline w-full sm:w-auto">Explorar cursos</Button>

@@ -27,7 +27,7 @@ function PasswordField({ label, value, onChange, autoComplete, placeholder, minL
           aria-label={show ? 'Ocultar contraseña' : 'Mostrar contraseña'}
           aria-pressed={show}
           onClick={onToggle}
-          className="auth-eye flex size-9 items-center justify-center rounded-md text-slate-500 hover:text-action"
+          className="auth-eye flex size-9 items-center justify-center rounded-md"
         >
           {show ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
         </button>
@@ -74,8 +74,8 @@ export function AuthPage({ mode }) {
         ? 'Regístrate como estudiante y comienza tu experiencia de aprendizaje.'
         : 'Accede a tu cuenta para continuar tu aprendizaje.'}
       footer={isRegister
-        ? <>¿Ya tienes una cuenta? <Link to="/acceso" className="auth-switch font-semibold text-action">Iniciar sesión</Link></>
-        : <>¿No tienes una cuenta? <Link to="/registro" className="auth-switch font-semibold text-action">Crear cuenta</Link></>}
+        ? <>¿Ya tienes una cuenta? <Link to="/acceso" className="auth-switch font-semibold">Iniciar sesión</Link></>
+        : <>¿No tienes una cuenta? <Link to="/registro" className="auth-switch font-semibold">Crear cuenta</Link></>}
     >
       <form onSubmit={submit} className="auth-form space-y-5">
         {error ? <Message tone="error" className="auth-error">{error}</Message> : null}
