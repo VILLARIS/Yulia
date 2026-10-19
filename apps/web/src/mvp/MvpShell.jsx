@@ -26,7 +26,7 @@ export function MvpShell() {
           <nav aria-label="Navegación del pie" className="mvp-footer-nav flex flex-wrap items-center justify-center gap-x-6 gap-y-2 text-sm text-slate-700">
             <Link to="/">Inicio</Link>
             <Link to={coursePath}>Cursos</Link>
-            <Link to="/#acerca">Acerca de</Link>
+            <Link to="/acerca">Acerca de</Link>
           </nav>
           <div className="text-sm leading-6 text-slate-700">
             <p>Aprende mediante casos y simulaciones guiadas.</p>

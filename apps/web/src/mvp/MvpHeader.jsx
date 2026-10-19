@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { Menu, X } from 'lucide-react';
+import { GraduationCap, Menu, X } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import { Button } from '../components/ui/Button';
 import yuliaLogo from '../assets/yulia/logo-yulia.jpeg';
@@ -12,18 +12,24 @@ export function MvpHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuButtonRef = useRef(null);
   const active = location.pathname === '/'
-    ? location.hash === '#acerca' ? 'about' : 'home'
-    : location.pathname.startsWith('/cursos') || location.pathname.startsWith('/docente') || location.pathname.startsWith('/estudiante')
-      ? 'courses'
-      : location.pathname.startsWith('/videos')
-        ? 'videos'
-        : '';
+    ? 'home'
+    : location.pathname.startsWith('/acerca')
+      ? 'about'
+      : location.pathname.startsWith('/cursos') || location.pathname.startsWith('/docente') || location.pathname.startsWith('/estudiante')
+        ? 'courses'
+        : location.pathname.startsWith('/videos')
+          ? 'videos'
+          : '';
+
+  const isTeacher = user?.role === 'teacher';
+  const roleLabel = isTeacher ? 'Docente' : user ? 'Estudiante' : '';
+  const initial = user?.name?.trim()?.charAt(0)?.toUpperCase() ?? '?';
 
   const links = [
     { key: 'home', to: '/', label: 'Inicio', current: 'page' },
     { key: 'courses', to: '/cursos', label: 'Cursos', current: 'page' },
     { key: 'videos', to: '/videos', label: 'Videos', current: 'page' },
-    { key: 'about', to: '/#acerca', label: 'Acerca de', current: 'location' },
+    { key: 'about', to: '/acerca', label: 'Acerca de', current: 'page' },
   ];
 
   const handleLogout = async () => {
@@ -48,13 +54,30 @@ export function MvpHeader() {
     return () => document.removeEventListener('keydown', handleKeyDown);
   }, [menuOpen]);
 
+  const sessionChip = user ? (
+    <span className="mvp-role-chip">
+      <span className="mvp-role-avatar" aria-hidden="true">{initial}</span>
+      <span className="mvp-role-meta">
+        <span className="mvp-role-name">{user.name}</span>
+        <span className="mvp-role-label">{roleLabel}</span>
+      </span>
+    </span>
+  ) : null;
+
   return (
-    <header className="mvp-header sticky top-0 z-30 border-b border-[#dce8d8] bg-[#fbfcf8]">
+    <header className={`mvp-header sticky top-0 z-30 ${isTeacher ? 'mvp-header-teacher' : 'border-b border-[#dce8d8] bg-[#fbfcf8]'}`}>
       <div className="site-container mvp-header-inner">
-        <Link to="/" className="mvp-brand" aria-label="Bromatología y Nutrición. Ir al inicio">
-          <img src={yuliaLogo} alt="" className="mvp-brand-logo" />
-          <span className="mvp-brand-text">Bromatología y Nutrición</span>
-        </Link>
+        <div className="mvp-brand-wrap">
+          <Link to="/" className="mvp-brand" aria-label="Bromatología y Nutrición. Ir al inicio">
+            <img src={yuliaLogo} alt="" className="mvp-brand-logo" />
+            <span className="mvp-brand-text">Bromatología y Nutrición</span>
+          </Link>
+          {isTeacher ? (
+            <span className="mvp-teacher-badge">
+              <GraduationCap size={13} aria-hidden="true" /> Modo docente
+            </span>
+          ) : null}
+        </div>
 
         <nav aria-label="Navegación principal" className="mvp-nav hidden items-center gap-1 lg:flex">
           {links.map(({ key, to, label, current }) => (
@@ -69,9 +92,12 @@ export function MvpHeader() {
           ))}
         </nav>
 
-        <div className="mvp-actions hidden items-center gap-1.5 lg:flex">
+        <div className="mvp-actions hidden items-center gap-2.5 lg:flex">
           {user ? (
-            <button type="button" className="nav-link" onClick={handleLogout}>Salir</button>
+            <>
+              {sessionChip}
+              <button type="button" className="nav-link" onClick={handleLogout}>Salir</button>
+            </>
           ) : (
             <Button to="/acceso" size="sm" className="mvp-header-cta">Comenzar</Button>
           )}
@@ -93,6 +119,15 @@ export function MvpHeader() {
       {menuOpen ? (
         <div id="navegacion-movil" className="mvp-mobile-menu">
           <nav aria-label="Navegación principal móvil" className="site-container py-3">
+            {user ? (
+              <div className="mvp-mobile-role">
+                <span className="mvp-role-avatar" aria-hidden="true">{initial}</span>
+                <span className="mvp-role-meta">
+                  <span className="mvp-role-name">{user.name}</span>
+                  <span className="mvp-role-label">{roleLabel}</span>
+                </span>
+              </div>
+            ) : null}
             <ul className="flex flex-col gap-0.5">
               {links.map(({ key, to, label, current }) => (
                 <li key={key}>

@@ -323,6 +323,60 @@
   }
 
   /*
+   * Modo docente. El panel de gestión comparte la identidad, pero se lee más
+   * institucional: fondo blanco, borde inferior verde algo más marcado y un
+   * filete superior verde como acento. Así el docente percibe de inmediato que
+   * está en una zona de administración distinta de la vista de estudiante.
+   */
+  .mvp-header-teacher {
+    background-color: #ffffff;
+    border-bottom: 1px solid #cfe6c8;
+    box-shadow: inset 0 3px 0 0 #2b8537, 0 6px 18px rgb(23 59 108 / 0.05);
+  }
+
+  .mvp-brand-wrap {
+    @apply flex min-w-0 items-center gap-2.5;
+  }
+
+  .mvp-teacher-badge {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-full border border-[#cfe6c8] bg-[#eaf6e4] px-2.5 py-1 text-[11px] font-bold uppercase tracking-[0.12em] text-[#2b8537];
+  }
+
+  /* Chip de sesión: refuerza que hay una sesión activa y con qué rol. */
+  .mvp-role-chip {
+    @apply inline-flex items-center gap-2 rounded-full border border-[#dce8d8] bg-[#fbfcf8] py-1 pl-1 pr-3;
+  }
+
+  .mvp-header-teacher .mvp-role-chip { border-color: #cfe6c8; background-color: #f4faf1; }
+
+  .mvp-role-avatar {
+    @apply grid size-8 shrink-0 place-items-center rounded-full text-[13px] font-bold text-white;
+    background-color: #173b6c;
+  }
+
+  .mvp-header-teacher .mvp-role-avatar { background-color: #2b8537; }
+
+  .mvp-role-meta { @apply flex flex-col leading-tight; }
+
+  .mvp-role-name { @apply max-w-[9rem] truncate text-[13px] font-semibold text-[#173b6c]; }
+
+  .mvp-role-label {
+    @apply text-[10px] font-bold uppercase tracking-[0.14em] text-[#5c6f82];
+  }
+
+  .mvp-header-teacher .mvp-role-label { color: #2b8537; }
+
+  .mvp-mobile-role {
+    @apply mb-2 flex items-center gap-2.5 rounded-xl border border-[#dce8d8] bg-white px-3 py-2.5;
+  }
+
+  .mvp-header-teacher .mvp-mobile-role { border-color: #cfe6c8; background-color: #f4faf1; }
+
+  @media (min-width: 1024px) {
+    .mvp-brand-wrap { justify-self: start; }
+  }
+
+  /*
    * Hero editorial. La ilustración actual es un lienzo ancho con la figura a la
    * derecha y aire claro a la izquierda, de modo que en escritorio se usa como
    * fondo a sangre: la figura conserva su encuadre (a la derecha) y el texto se
@@ -994,6 +1048,391 @@
     .courses-filters { @apply w-full overflow-x-auto; }
   }
 
+  /* Panel docente ----------------------------------------------------------
+   * Evolución del catálogo conservando la misma identidad (navy #173b6c,
+   * verde #2b8537, marfil #fbfcf8), pero con una voz más administrativa: una
+   * cabecera con métricas suaves y tarjetas de gestión más sobrias, orientadas
+   * a la acción del docente y no a la exploración. */
+  .teacher-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 2.75rem 0 2.25rem;
+    border-bottom: 1px solid #dce8d8;
+    background:
+      radial-gradient(circle at 92% -40%, rgb(103 196 71 / 0.16), transparent 44%),
+      linear-gradient(180deg, #ffffff 0%, #f4faf1 100%);
+  }
+
+  .teacher-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .teacher-hero-row {
+    @apply mt-3 flex flex-wrap items-end justify-between gap-5;
+  }
+
+  .teacher-title {
+    @apply text-[2rem] font-bold leading-[1.1] tracking-tight text-[#173b6c] sm:text-[2.6rem];
+  }
+
+  .teacher-subtitle {
+    @apply mt-3 max-w-2xl text-base leading-7 text-[#5c6f82] sm:text-lg;
+  }
+
+  .teacher-create {
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c] focus-visible:!ring-offset-[#fbfcf8];
+    box-shadow: 0 6px 16px rgb(43 133 55 / 0.22);
+  }
+
+  /* Métricas suaves: solo datos presentes en la respuesta (publicado/borrador). */
+  .teacher-metrics {
+    @apply mt-6 grid gap-3 sm:max-w-xl sm:grid-cols-3;
+  }
+
+  .teacher-metric {
+    @apply flex items-center gap-3 rounded-xl border border-[#dce8d8] bg-white px-4 py-3;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+  }
+
+  .teacher-metric-icon {
+    @apply grid size-9 shrink-0 place-items-center rounded-lg;
+  }
+
+  .teacher-metric-icon-green { color: #2b8537; background-color: #eaf6e4; }
+  .teacher-metric-icon-amber { color: #b45309; background-color: #fef3c7; }
+  .teacher-metric-icon-blue { color: #173b6c; background-color: #e9f0f0; }
+
+  .teacher-metric-value { @apply text-lg font-bold leading-tight text-[#173b6c]; }
+  .teacher-metric-label { @apply text-xs font-medium text-[#5c6f82]; }
+
+  .teacher-main {
+    @apply py-9 lg:py-12;
+    background-color: #fbfcf8;
+  }
+
+  .teacher-grid {
+    @apply grid list-none gap-5 p-0 sm:grid-cols-2 lg:grid-cols-3;
+  }
+
+  /* Tarjeta de gestión: misma familia que las del catálogo, más sobria. */
+  .teacher-card {
+    @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#dce8d8] bg-white p-5;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .teacher-card:hover {
+    transform: translateY(-3px);
+    border-color: #bcd4b6;
+    box-shadow: 0 16px 32px rgb(23 59 108 / 0.1);
+  }
+
+  .teacher-card-top { @apply flex items-center justify-between gap-3; }
+
+  .teacher-card-chip {
+    @apply grid size-11 shrink-0 place-items-center rounded-xl;
+  }
+
+  .teacher-card-chip-green { color: #2b8537; background-color: #eaf6e4; }
+  .teacher-card-chip-blue { color: #173b6c; background-color: #e9f0f0; }
+  .teacher-card-chip-cream { color: #1f6b3a; background-color: #f2f9ea; }
+  .teacher-card-chip-teal { color: #157a6e; background-color: #e9f4ef; }
+
+  .teacher-card-title {
+    @apply mt-4 text-lg font-bold leading-snug tracking-tight text-[#173b6c];
+  }
+
+  .teacher-card-desc { @apply mt-2 flex-1 text-sm leading-6 text-[#5c6f82]; }
+
+  .teacher-card-meta {
+    @apply mt-4 inline-flex items-center gap-1.5 text-xs font-medium text-[#7e90a3];
+  }
+
+  .teacher-card-foot {
+    @apply mt-5 flex flex-wrap items-center gap-2 border-t border-[#eef4ea] pt-4;
+  }
+
+  .teacher-cta-view {
+    @apply !border-[#bcd4b6] !text-[#173b6c] hover:!border-[#173b6c] hover:!bg-[#eaf6e4];
+  }
+
+  .teacher-cta-edit {
+    @apply inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-[#5c6f82] transition-colors hover:bg-[#f4faf1] hover:text-[#2b8537] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2;
+  }
+
+  .teacher-cta-delete {
+    @apply ml-auto inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-sm font-semibold text-[#b42318] transition-colors hover:bg-[#fdf2f1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b42318] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55;
+  }
+
+  @media (max-width: 639.98px) {
+    .teacher-hero { padding: 2rem 0 1.75rem; }
+    .teacher-title { font-size: 1.9rem; }
+    .teacher-metrics { @apply sm:max-w-none; }
+    .teacher-cta-view { @apply w-full; }
+  }
+
+  /* Editor de curso (crear/editar) -----------------------------------------
+   * Comparte el lenguaje del panel docente: cabecera con migas, formulario en
+   * tarjetas por bloques y una columna de apoyo con estado y consejos. Misma
+   * paleta: navy #173b6c de jerarquía, verde #2b8537 de acción, marfil. */
+  .editor-page { background-color: #fbfcf8; }
+
+  .editor-hero {
+    position: relative;
+    overflow: hidden;
+    padding: 2.5rem 0 2rem;
+    border-bottom: 1px solid #dce8d8;
+    background:
+      radial-gradient(circle at 92% -40%, rgb(103 196 71 / 0.16), transparent 44%),
+      linear-gradient(180deg, #ffffff 0%, #f4faf1 100%);
+  }
+
+  .editor-breadcrumb {
+    @apply flex flex-wrap items-center gap-1.5 text-xs font-medium text-[#5c6f82];
+  }
+
+  .editor-breadcrumb-link {
+    @apply rounded transition-colors hover:text-[#2b8537] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbfcf8];
+  }
+
+  .editor-breadcrumb-sep { @apply text-[#c3d2bd]; }
+  .editor-breadcrumb-current { @apply font-semibold text-[#173b6c]; }
+
+  .editor-hero-row {
+    @apply mt-3 flex flex-wrap items-end justify-between gap-4;
+  }
+
+  .editor-eyebrow {
+    @apply text-xs font-semibold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .editor-title {
+    @apply mt-2 text-[2rem] font-bold leading-[1.1] tracking-tight text-[#173b6c] sm:text-[2.5rem];
+  }
+
+  .editor-subtitle {
+    @apply mt-3 max-w-2xl text-base leading-7 text-[#5c6f82];
+  }
+
+  .editor-back {
+    @apply inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-[#dce8d8] bg-white px-3.5 py-2 text-sm font-semibold text-[#173b6c] transition-colors hover:border-[#bcd4b6] hover:bg-[#eaf6e4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2 focus-visible:ring-offset-[#fbfcf8];
+  }
+
+  .editor-main { @apply py-9 lg:py-12; }
+
+  .editor-grid {
+    @apply grid gap-6;
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    .editor-grid { grid-template-columns: minmax(0, 1fr) 20rem; align-items: start; }
+  }
+
+  .editor-form { @apply flex flex-col gap-5; }
+
+  .editor-card {
+    @apply overflow-hidden rounded-2xl border border-[#dce8d8] bg-white;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+  }
+
+  .editor-card-head {
+    @apply flex items-start gap-3 border-b border-[#eef4ea] bg-[#f4faf1] px-5 py-4;
+  }
+
+  .editor-card-icon {
+    @apply grid size-9 shrink-0 place-items-center rounded-lg border;
+  }
+
+  .editor-card-icon-green { color: #2b8537; background-color: #eaf6e4; border-color: #cfe6c8; }
+  .editor-card-icon-blue { color: #1769aa; background-color: #eef6fb; border-color: #d5e4ee; }
+
+  .editor-card-headtext { @apply min-w-0; }
+  .editor-card-title { @apply text-base font-bold tracking-tight text-[#173b6c]; }
+  .editor-card-sub { @apply mt-0.5 text-xs leading-5 text-[#5c6f82]; }
+
+  .editor-card-body { @apply flex flex-col gap-5 px-5 py-5; }
+
+  /* Interruptor accesible: es un checkbox con etiqueta; solo cambia su piel. */
+  .editor-switch {
+    @apply flex cursor-pointer items-start gap-3.5 rounded-xl border border-[#dce8d8] bg-[#fbfcf8] px-4 py-3.5 transition-colors;
+  }
+
+  .editor-switch:hover { border-color: #bcd4b6; background-color: #f4faf1; }
+
+  .editor-switch-input { @apply sr-only; }
+
+  .editor-switch-track {
+    @apply relative mt-0.5 inline-flex h-6 w-11 shrink-0 items-center rounded-full bg-slate-300 transition-colors;
+  }
+
+  .editor-switch-input:checked ~ .editor-switch-track { background-color: #2b8537; }
+
+  .editor-switch-input:focus-visible ~ .editor-switch-track {
+    box-shadow: 0 0 0 3px rgb(103 196 71 / 0.4);
+  }
+
+  .editor-switch-thumb {
+    @apply absolute left-0.5 size-5 rounded-full bg-white transition-transform;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.25);
+  }
+
+  .editor-switch-input:checked ~ .editor-switch-track .editor-switch-thumb { transform: translateX(1.25rem); }
+
+  .editor-switch-text { @apply flex min-w-0 flex-col; }
+  .editor-switch-title { @apply text-sm font-semibold text-[#173b6c]; }
+  .editor-switch-desc { @apply mt-0.5 text-xs leading-5 text-[#5c6f82]; }
+
+  .editor-note {
+    @apply flex items-start gap-2.5 rounded-xl border border-[#d5e4ee] bg-[#eef6fb] px-3.5 py-3 text-xs leading-5 text-[#46596d];
+  }
+
+  .editor-note svg { @apply mt-0.5 shrink-0 text-[#1769aa]; }
+
+  .editor-actions { @apply flex flex-wrap items-center gap-3; }
+
+  .editor-save {
+    @apply !bg-[#2b8537] hover:!bg-[#237a32] focus-visible:!ring-[#173b6c] focus-visible:!ring-offset-[#fbfcf8];
+    box-shadow: 0 6px 16px rgb(43 133 55 / 0.22);
+  }
+
+  .editor-aside { @apply flex flex-col gap-4; }
+
+  .editor-status {
+    @apply rounded-2xl border border-[#dce8d8] bg-white p-5;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+  }
+
+  .editor-aside-label {
+    @apply mb-3 inline-flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-[0.14em] text-[#2b8537];
+  }
+
+  .editor-status-text { @apply mt-3 text-sm leading-6 text-[#5c6f82]; }
+
+  .editor-tips { @apply rounded-2xl border border-[#cfe6c8] bg-[#f4faf1] p-5; }
+
+  .editor-tips-list { @apply flex list-none flex-col gap-2 p-0 text-sm leading-6 text-[#5c6f82]; }
+
+  .editor-tips-list li { @apply relative pl-5; }
+
+  .editor-tips-list li::before {
+    content: '';
+    @apply absolute left-0 top-2 size-1.5 rounded-full bg-[#67c447];
+  }
+
+  .editor-skeleton {
+    border-color: #e6efdf;
+    background: linear-gradient(100deg, #f4faf1 30%, #eaf4e4 50%, #f4faf1 70%);
+    background-size: 200% 100%;
+    animation: course-skeleton 1.4s ease-in-out infinite;
+  }
+
+  .editor-skeleton-lg { min-height: 22rem; }
+  .editor-skeleton-sm { min-height: 9rem; }
+
+  @media (max-width: 639.98px) {
+    .editor-hero { padding: 1.9rem 0 1.6rem; }
+    .editor-title { font-size: 1.8rem; }
+  }
+
+  /* Acerca de --------------------------------------------------------------
+   * Página informativa con la identidad Yumibiotic: navy #173b6c de jerarquía,
+   * verde profundo #2b8537 de acción, verde brillante #67c447 de acento y los
+   * fondos marfil / verde muy suave del resto del sitio. */
+  .about-page { background-color: #fbfcf8; }
+
+  .about-hero {
+    position: relative;
+    overflow: hidden;
+    border-bottom: 1px solid #dce8d8;
+    background:
+      radial-gradient(circle at 12% 0%, #eaf6e4 0%, transparent 52%),
+      radial-gradient(circle at 100% 12%, #eef6fb 0%, transparent 46%),
+      #fbfcf8;
+  }
+
+  .about-hero-inner { @apply grid items-center gap-10 py-16 sm:py-20 lg:grid-cols-[1.15fr_0.85fr] lg:gap-14 lg:py-24; }
+
+  .about-hero-copy { @apply max-w-xl; }
+
+  .about-title { @apply mt-4 text-[2.35rem] font-bold leading-[1.08] tracking-tight text-[#173b6c] sm:text-[2.9rem] lg:text-[3.1rem]; }
+
+  .about-lead { @apply mt-6 text-base leading-7 text-[#5c6f82] sm:text-lg sm:leading-8; }
+
+  .about-hero-actions { @apply mt-8 flex flex-col gap-3 sm:flex-row; }
+
+  .about-hero-card {
+    @apply relative flex flex-col gap-5 rounded-3xl border border-[#dce8d8] bg-white p-6 sm:p-7;
+    box-shadow: 0 24px 48px -30px rgb(23 59 108 / 0.4);
+  }
+
+  .about-hero-card::before {
+    content: '';
+    @apply absolute -top-px left-6 right-6 h-px;
+    background: linear-gradient(90deg, transparent, #67c447, transparent);
+  }
+
+  .about-stat { @apply flex items-start gap-3.5; }
+
+  .about-stat-icon { @apply inline-flex size-11 shrink-0 items-center justify-center rounded-xl; }
+  .about-stat-icon-green { @apply bg-[#d5efc9] text-[#2b8537]; }
+  .about-stat-icon-blue { @apply bg-[#dceee6] text-[#173b6c]; }
+
+  .about-stat-title { @apply text-sm font-semibold text-[#173b6c]; }
+  .about-stat-text { @apply mt-0.5 text-sm leading-6 text-[#5c6f82]; }
+
+  .about-section { @apply py-16 sm:py-20; }
+  .about-section-cream { background-color: #fbfcf8; }
+  .about-section-sky { background-color: #f5faf3; }
+  .about-section-mint { background-color: #eef8ea; }
+
+  .about-intro { @apply max-w-2xl; }
+  .about-h2 { @apply mt-3 text-[1.7rem] font-semibold leading-[1.15] tracking-tight text-[#173b6c] sm:text-[2.05rem] lg:text-[2.3rem]; }
+  .about-text { @apply mt-4 text-base leading-7 text-[#5c6f82]; }
+
+  .about-principles { @apply mt-10 grid gap-5 md:grid-cols-3; }
+  .about-principle { @apply relative flex flex-col rounded-2xl border border-[#dce8d8] bg-white p-6; }
+  .about-principle-index { @apply text-xs font-bold tracking-[0.18em] text-[#67c447]; }
+  .about-principle-icon { @apply mt-4 inline-flex size-11 items-center justify-center rounded-xl bg-[#eaf6e4] text-[#2b8537]; }
+  .about-principle-title { @apply mt-4 text-lg font-semibold tracking-tight text-[#173b6c]; }
+  .about-principle-text { @apply mt-2 text-sm leading-6 text-[#5c6f82]; }
+
+  .about-features { @apply mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4; }
+  .about-feature { @apply flex h-full flex-col rounded-2xl p-6 transition duration-200; }
+  .about-feature:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgb(23 59 108 / 0.1); }
+  .about-feature-green { background-color: #eaf6e4; }
+  .about-feature-blue { background-color: #eaf4f0; }
+  .about-feature-mint { background-color: #f1f9e8; }
+  .about-feature-sky { background-color: #e9f0f0; }
+  .about-feature-icon { @apply mb-4 inline-flex size-11 items-center justify-center rounded-xl bg-white/70 text-[#173b6c]; }
+  .about-feature-title { @apply text-base font-semibold text-[#173b6c]; }
+  .about-feature-text { @apply mt-2 text-sm leading-6 text-[#5c6f82]; }
+
+  .about-audience { @apply mt-10 grid gap-5 lg:grid-cols-2; }
+  .about-audience-card { @apply relative overflow-hidden rounded-2xl border p-6 sm:p-8; }
+  .about-audience-student { @apply border-[#dce8d8] bg-[#f1f9ee]; }
+  .about-audience-teacher { @apply border-[#dce8d8] bg-[#eaf6e4]; }
+  .about-audience-tag { @apply inline-flex items-center gap-2 rounded-full bg-white/80 px-3 py-1 text-xs font-semibold uppercase tracking-[0.12em] text-[#173b6c]; }
+  .about-audience-title { @apply mt-4 text-xl font-semibold tracking-tight text-[#173b6c]; }
+  .about-audience-list { @apply mt-4 flex list-none flex-col gap-2.5 p-0 text-sm leading-6 text-[#5c6f82]; }
+  .about-audience-list li { @apply flex items-start gap-2.5; }
+  .about-audience-check { @apply mt-0.5 inline-flex size-5 shrink-0 items-center justify-center rounded-full bg-[#d5efc9] text-[#2b8537]; }
+
+  .about-final {
+    @apply relative overflow-hidden rounded-3xl border border-[#cfe6c8] px-7 py-12 text-center sm:py-14;
+    background: linear-gradient(135deg, #eaf6e4 0%, #f4faf1 55%, #eef6fb 100%);
+  }
+  .about-final-title { @apply mx-auto max-w-2xl text-[1.6rem] font-semibold leading-[1.18] tracking-tight text-[#173b6c] sm:text-[2rem]; }
+  .about-final-text { @apply mx-auto mt-4 max-w-xl text-base leading-7 text-[#5c6f82]; }
+  .about-final-actions { @apply mt-8 flex flex-col justify-center gap-3 sm:flex-row; }
+  .about-final-leaf { @apply pointer-events-none absolute text-[#67c447]; opacity: 0.16; }
+  .about-final-leaf-left { @apply -left-4 -top-4; }
+  .about-final-leaf-right { @apply -bottom-4 -right-4; }
+
+  @media (max-width: 639.98px) {
+    .about-title { font-size: 2rem; }
+  }
+
   /* Detalle de curso --------------------------------------------------------
    * Misma identidad Yumibiotic: navy #173b6c de jerarquía, verde profundo
    * #2b8537 para la acción y marfil #fbfcf8 de fondo. La portada presenta el
@@ -1318,6 +1757,14 @@
   .course-cta-text:hover .course-cta-arrow {
     transform: translateX(2px);
   }
+
+  /* Acción destructiva discreta: solo aparece donde el docente gestiona. */
+  .course-cta-delete {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-[#f0cdc7] bg-white px-3 py-2 text-sm font-semibold text-[#b42318] transition-colors hover:border-[#e6a9a0] hover:bg-[#fdf2f1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b42318] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-55;
+  }
+
+  .delete-warning { @apply text-sm font-semibold text-[#b42318]; }
+  .delete-target { @apply mt-1 text-sm text-[#5c6f82]; }
 
   /* Carga: portada y cards en espera, sin spinner. */
   .course-cover-loading {

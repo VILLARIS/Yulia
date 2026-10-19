@@ -78,3 +78,213 @@ test('flujo persistente docente → estudiante y permisos', { skip: !process.env
     for (const id of created.users) await query('DELETE FROM users WHERE id = $1', [id]);
   }
 });
+
+// --- Borrado de simulaciones y cursos por el docente -------------------------
+
+const PASSWORD = 'Password123!';
+
+function newHarness() {
+  let server;
+  let base;
+  const users = [];
+  const courses = [];
+  const simulations = [];
+  return {
+    users,
+    courses,
+    simulations,
+    async start() {
+      server = createApp().listen(0);
+      await new Promise((resolve) => server.once('listening', resolve));
+      base = `http://127.0.0.1:${server.address().port}/api`;
+    },
+    async stop() {
+      await new Promise((resolve, reject) => server.close((error) => (error ? reject(error) : resolve())));
+    },
+    async call(path, method = 'GET', body, cookie) {
+      const response = await fetch(`${base}${path}`, {
+        method,
+        headers: { 'Content-Type': 'application/json', ...(cookie ? { Cookie: cookie } : {}) },
+        ...(body ? { body: JSON.stringify(body) } : {}),
+      });
+      const data = response.status === 204 ? null : await response.json().catch(() => null);
+      return { status: response.status, data, cookie: response.headers.get('set-cookie')?.split(';')[0] };
+    },
+  };
+}
+
+async function registerUser(harness, role, label, marker) {
+  const response = await harness.call('/auth/register', 'POST', { name: label, email: `${label}-${marker}@example.test`, password: PASSWORD, role });
+  assert.equal(response.status, 201);
+  harness.users.push(response.data.user.id);
+  return response;
+}
+
+async function createCourse(harness, cookie, title) {
+  const response = await harness.call('/courses', 'POST', { title, description: '', published: true }, cookie);
+  assert.equal(response.status, 201);
+  harness.courses.push(response.data.course.id);
+  return response.data.course.id;
+}
+
+async function createSimulation(harness, cookie, courseId, title) {
+  const response = await harness.call(`/courses/${courseId}/simulations`, 'POST', {
+    title,
+    scenario: 'Escenario de prueba con más de diez caracteres.',
+    objective: 'Razonar el caso',
+    tutorInstructions: 'Guiar con preguntas.',
+    published: true,
+  }, cookie);
+  assert.equal(response.status, 201);
+  harness.simulations.push(response.data.simulation.id);
+  return response.data.simulation.id;
+}
+
+async function seedActivity(simulationId, studentId, { evaluation = true } = {}) {
+  const session = await query(`INSERT INTO simulation_sessions (student_id, clinical_case_id, case_version, status, started_at, last_activity_at)
+    VALUES ($1, $2, 1, 'created', now(), now()) RETURNING id`, [studentId, simulationId]);
+  const sessionId = session.rows[0].id;
+  await query(`INSERT INTO conversation_messages (session_id, role, stage, content, sequence_number)
+    VALUES ($1, 'student', 'inicio', 'Mi razonamiento', 1), ($1, 'tutor', 'inicio', '¿Qué analizarías?', 2)`, [sessionId]);
+  let evaluationId = null;
+  if (evaluation) {
+    const created = await query(`INSERT INTO evaluations (session_id, final_score, global_level, personalized_feedback)
+      VALUES ($1, 15.5, 'bueno', 'Buen razonamiento') RETURNING id`, [sessionId]);
+    evaluationId = created.rows[0].id;
+    await query(`INSERT INTO rubric_scores (evaluation_id, criterion_key, criterion_label, score, achievement_level, evidence)
+      VALUES ($1, 'k1', 'Criterio', 4.5, 'logrado', 'evidencia')`, [evaluationId]);
+  }
+  await query(`INSERT INTO supervision_events (session_id, student_id, event_type, occurred_at, client_event_id)
+    VALUES ($1, $2, 'window_left', now(), $3)`, [sessionId, studentId, randomUUID()]);
+  await query(`INSERT INTO recording_metadata (session_id, consented_at, storage_key, mime_type, status)
+    VALUES ($1, now(), $2, 'video/webm', 'ready')`, [sessionId, randomUUID()]);
+  return { sessionId, evaluationId };
+}
+
+async function countRows(table, column, value) {
+  const { rows } = await query(`SELECT count(*)::int AS n FROM ${table} WHERE ${column} = $1`, [value]);
+  return rows[0].n;
+}
+
+async function purgeSimulation(id) {
+  const sessions = 'SELECT id FROM simulation_sessions WHERE clinical_case_id = $1';
+  await query(`DELETE FROM rubric_scores WHERE evaluation_id IN (SELECT e.id FROM evaluations e WHERE e.session_id IN (${sessions}))`, [id]);
+  await query(`DELETE FROM evaluations WHERE session_id IN (${sessions})`, [id]);
+  await query(`DELETE FROM recording_metadata WHERE session_id IN (${sessions})`, [id]);
+  await query(`DELETE FROM supervision_events WHERE session_id IN (${sessions})`, [id]);
+  await query(`DELETE FROM conversation_messages WHERE session_id IN (${sessions})`, [id]);
+  await query('DELETE FROM simulation_sessions WHERE clinical_case_id = $1', [id]);
+  await query('DELETE FROM clinical_cases WHERE id = $1', [id]);
+}
+
+async function purgeCourse(id) {
+  const sessions = 'SELECT id FROM simulation_sessions WHERE clinical_case_id IN (SELECT id FROM clinical_cases WHERE course_id = $1)';
+  await query(`DELETE FROM rubric_scores WHERE evaluation_id IN (SELECT e.id FROM evaluations e WHERE e.session_id IN (${sessions}))`, [id]);
+  await query(`DELETE FROM evaluations WHERE session_id IN (${sessions})`, [id]);
+  await query(`DELETE FROM recording_metadata WHERE session_id IN (${sessions})`, [id]);
+  await query(`DELETE FROM supervision_events WHERE session_id IN (${sessions})`, [id]);
+  await query(`DELETE FROM conversation_messages WHERE session_id IN (${sessions})`, [id]);
+  await query('DELETE FROM simulation_sessions WHERE clinical_case_id IN (SELECT id FROM clinical_cases WHERE course_id = $1)', [id]);
+  await query('DELETE FROM clinical_cases WHERE course_id = $1', [id]);
+  await query('DELETE FROM enrollments WHERE course_id = $1', [id]);
+  await query('DELETE FROM courses WHERE id = $1', [id]);
+}
+
+async function teardown(harness) {
+  for (const id of harness.courses) { try { await purgeCourse(id); } catch { /* ya eliminado */ } }
+  for (const id of harness.simulations) { try { await purgeSimulation(id); } catch { /* ya eliminado */ } }
+  for (const id of harness.users) { try { await query('DELETE FROM users WHERE id = $1', [id]); } catch { /* ya eliminado */ } }
+}
+
+test('el docente borra simulaciones: historial, aislamiento y permisos', { skip: !process.env.DATABASE_URL }, async () => {
+  const marker = randomUUID();
+  const harness = newHarness();
+  await harness.start();
+  try {
+    const teacher = await registerUser(harness, 'teacher', 'Docente', marker);
+    const other = await registerUser(harness, 'teacher', 'Otra', marker);
+    const student = await registerUser(harness, 'student', 'Estudiante', marker);
+    const studentId = student.data.user.id;
+
+    const courseId = await createCourse(harness, teacher.cookie, 'Curso con simulaciones');
+    const emptySim = await createSimulation(harness, teacher.cookie, courseId, 'Simulación sin actividad');
+    const busySim = await createSimulation(harness, teacher.cookie, courseId, 'Simulación con actividad');
+    const keepSim = await createSimulation(harness, teacher.cookie, courseId, 'Simulación intacta');
+
+    const { sessionId, evaluationId } = await seedActivity(busySim, studentId);
+
+    assert.equal((await harness.call(`/simulations/${busySim}`, 'DELETE', null, student.cookie)).status, 403);
+    assert.equal((await harness.call(`/simulations/${busySim}`, 'DELETE', null, other.cookie)).status, 404);
+
+    assert.equal((await harness.call(`/simulations/${emptySim}`, 'DELETE', null, teacher.cookie)).status, 204);
+    assert.equal(await countRows('clinical_cases', 'id', emptySim), 0);
+
+    assert.equal((await harness.call(`/simulations/${busySim}`, 'DELETE', null, teacher.cookie)).status, 204);
+    assert.equal(await countRows('clinical_cases', 'id', busySim), 0);
+    assert.equal(await countRows('simulation_sessions', 'id', sessionId), 0);
+    assert.equal(await countRows('conversation_messages', 'session_id', sessionId), 0);
+    assert.equal(await countRows('evaluations', 'session_id', sessionId), 0);
+    assert.equal(await countRows('rubric_scores', 'evaluation_id', evaluationId), 0);
+    assert.equal(await countRows('supervision_events', 'session_id', sessionId), 0);
+    assert.equal(await countRows('recording_metadata', 'session_id', sessionId), 0);
+
+    assert.equal(await countRows('clinical_cases', 'id', keepSim), 1);
+    assert.equal((await harness.call(`/simulations/${keepSim}`, 'DELETE', null, teacher.cookie)).status, 204);
+    assert.equal(await countRows('clinical_cases', 'id', keepSim), 0);
+
+    assert.equal(await countRows('users', 'id', studentId), 1);
+    assert.equal(await countRows('users', 'id', teacher.data.user.id), 1);
+  } finally {
+    await harness.stop();
+    await teardown(harness);
+  }
+});
+
+test('el docente borra cursos: contenido, inscripciones, historial y usuarios', { skip: !process.env.DATABASE_URL }, async () => {
+  const marker = randomUUID();
+  const harness = newHarness();
+  await harness.start();
+  try {
+    const teacher = await registerUser(harness, 'teacher', 'Docente', marker);
+    const other = await registerUser(harness, 'teacher', 'Otra', marker);
+    const student = await registerUser(harness, 'student', 'Estudiante', marker);
+    const studentId = student.data.user.id;
+
+    const emptyCourse = await createCourse(harness, teacher.cookie, 'Curso vacío');
+    assert.equal((await harness.call(`/courses/${emptyCourse}`, 'DELETE', null, student.cookie)).status, 403);
+    assert.equal((await harness.call(`/courses/${emptyCourse}`, 'DELETE', null, teacher.cookie)).status, 204);
+    assert.equal(await countRows('courses', 'id', emptyCourse), 0);
+
+    const courseId = await createCourse(harness, teacher.cookie, 'Curso completo');
+    const simA = await createSimulation(harness, teacher.cookie, courseId, 'Simulación A');
+    const simB = await createSimulation(harness, teacher.cookie, courseId, 'Simulación B');
+    assert.equal((await harness.call(`/courses/${courseId}/enroll`, 'POST', null, student.cookie)).status, 200);
+
+    const first = await seedActivity(simA, studentId);
+    const second = await seedActivity(simB, studentId, { evaluation: false });
+
+    assert.equal((await harness.call(`/courses/${courseId}`, 'DELETE', null, other.cookie)).status, 404);
+    assert.equal((await harness.call(`/courses/${courseId}`, 'DELETE', null, student.cookie)).status, 403);
+
+    assert.equal((await harness.call(`/courses/${courseId}`, 'DELETE', null, teacher.cookie)).status, 204);
+
+    assert.equal(await countRows('courses', 'id', courseId), 0);
+    assert.equal(await countRows('clinical_cases', 'course_id', courseId), 0);
+    assert.equal(await countRows('enrollments', 'course_id', courseId), 0);
+    assert.equal(await countRows('simulation_sessions', 'id', first.sessionId), 0);
+    assert.equal(await countRows('simulation_sessions', 'id', second.sessionId), 0);
+    assert.equal(await countRows('conversation_messages', 'session_id', first.sessionId), 0);
+    assert.equal(await countRows('conversation_messages', 'session_id', second.sessionId), 0);
+    assert.equal(await countRows('evaluations', 'session_id', first.sessionId), 0);
+    assert.equal(await countRows('rubric_scores', 'evaluation_id', first.evaluationId), 0);
+    assert.equal(await countRows('supervision_events', 'session_id', second.sessionId), 0);
+    assert.equal(await countRows('recording_metadata', 'session_id', second.sessionId), 0);
+
+    assert.equal(await countRows('users', 'id', teacher.data.user.id), 1);
+    assert.equal(await countRows('users', 'id', other.data.user.id), 1);
+    assert.equal(await countRows('users', 'id', studentId), 1);
+  } finally {
+    await harness.stop();
+    await teardown(harness);
+  }
+});

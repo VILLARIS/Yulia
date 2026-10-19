@@ -1,6 +1,6 @@
 import { useEffect } from 'react';
 import { ArrowRight, BookOpen, Check, Clock, FlaskConical, GraduationCap, Leaf, MessageCircle, Play, RotateCcw, Send } from 'lucide-react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import heroBackground from '../assets/yulia/home/heroBackground.png';
 import studentImage from '../assets/yulia/home/studentImage.png';
@@ -76,12 +76,16 @@ function ExperiencePanel({ tone, title, steps, image, imageAlt, ctaTo, ctaLabel 
 export function HomePage() {
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const coursePath = user ? user.role === 'teacher' ? '/docente' : '/estudiante' : '/acceso';
 
   useEffect(() => {
-    if (location.hash === '#acerca') document.getElementById('acerca')?.scrollIntoView();
-    else window.scrollTo(0, 0);
-  }, [location.hash]);
+    if (location.hash === '#acerca') {
+      navigate('/acerca', { replace: true });
+      return;
+    }
+    window.scrollTo(0, 0);
+  }, [location.hash, navigate]);
 
   return <>
     <section className="home-hero">

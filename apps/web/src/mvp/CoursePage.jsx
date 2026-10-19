@@ -1,14 +1,15 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
   Activity, Apple, ArrowRight, BookOpen, Brain, ChevronRight, Clock, FlaskConical,
-  HeartPulse, Layers, Lock, Microscope, PencilLine, Plus, Salad, Sparkles, UserRound, Users,
+  HeartPulse, Layers, Lock, Microscope, PencilLine, Plus, Salad, Sparkles, Trash2, UserRound, Users,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Message } from '../components/ui/Message';
+import { Modal } from '../components/ui/Modal';
 import { StatusBadge } from '../components/ui/StatusBadge';
-import { api } from './api';
+import { api, deleteCourse, deleteSimulation } from './api';
 import { useAuth } from './AuthContext';
 
 /* Identidad visual de cada simulación: determinista por posición, igual que el
@@ -57,7 +58,7 @@ function CourseSummary({ items }) {
   );
 }
 
-function SimulationRow({ simulation, index, session, teacher, busy, onToggle }) {
+function SimulationRow({ simulation, index, session, teacher, busy, onToggle, onDelete }) {
   const Icon = SIM_ICONS[index % SIM_ICONS.length];
   const tone = SIM_TONES[index % SIM_TONES.length];
   const description = simulation.objective || simulation.scenario || '';
@@ -90,6 +91,15 @@ function SimulationRow({ simulation, index, session, teacher, busy, onToggle }) 
               <Button size="sm" variant="secondary" disabled={busy} onClick={() => onToggle(simulation)} className="course-cta-outline">
                 {simulation.published ? 'Despublicar' : 'Publicar'}
               </Button>
+              <button
+                type="button"
+                className="course-cta-delete"
+                onClick={() => onDelete(simulation)}
+                disabled={busy}
+                aria-label={`Eliminar ${simulation.title}`}
+              >
+                <Trash2 size={15} aria-hidden="true" /> Eliminar
+              </button>
             </>
           ) : (
             <Button
@@ -109,6 +119,7 @@ function SimulationRow({ simulation, index, session, teacher, busy, onToggle }) 
 
 export function CoursePage() {
   const { courseId } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const teacher = user?.role === 'teacher';
   const [course, setCourse] = useState(null);
@@ -117,6 +128,9 @@ export function CoursePage() {
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -159,6 +173,24 @@ export function CoursePage() {
       setSimulations((current) => current.map((item) => item.id === updated.id ? updated : item));
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
+  };
+
+  const openDelete = (target) => { setDeleteError(''); setPendingDelete(target); };
+  const closeDelete = () => { if (deleteBusy) return; setPendingDelete(null); setDeleteError(''); };
+  const confirmDelete = async () => {
+    setDeleteBusy(true); setDeleteError('');
+    try {
+      if (pendingDelete.type === 'course') {
+        await deleteCourse(courseId);
+        setPendingDelete(null);
+        navigate('/docente');
+        return;
+      }
+      await deleteSimulation(pendingDelete.id);
+      setSimulations((current) => current.filter((item) => item.id !== pendingDelete.id));
+      setPendingDelete(null);
+    } catch (cause) { setDeleteError(cause.message); }
+    finally { setDeleteBusy(false); }
   };
 
   if (loading) return (
@@ -270,6 +302,9 @@ export function CoursePage() {
                   <>
                     <Button to={`/docente/cursos/${course.id}/editar`} variant="secondary" icon={PencilLine} className="course-cta-outline">Editar curso</Button>
                     <Button to={`/docente/cursos/${course.id}/simulaciones/nueva`} icon={Plus} className="course-cta-solid">Crear simulación</Button>
+                    <button type="button" className="course-cta-delete" onClick={() => openDelete({ type: 'course', title: course.title })} disabled={busy}>
+                      <Trash2 size={15} aria-hidden="true" /> Eliminar curso
+                    </button>
                   </>
                 ) : !user ? (
                   <Button to="/registro" icon={ArrowRight} iconPosition="end" className="course-cta-solid">Crear cuenta para acceder</Button>
@@ -341,6 +376,7 @@ export function CoursePage() {
                         teacher={teacher}
                         busy={busy}
                         onToggle={toggle}
+                        onDelete={openDelete}
                       />
                     ))}
                   </ul>
@@ -371,6 +407,9 @@ export function CoursePage() {
                   <div className="course-side-actions">
                     <Button to={`/docente/cursos/${course.id}/editar`} variant="secondary" icon={PencilLine} className="course-cta-outline w-full">Editar curso</Button>
                     <Button to={`/docente/cursos/${course.id}/simulaciones/nueva`} icon={Plus} className="course-cta-solid w-full">Crear simulación</Button>
+                    <button type="button" className="course-cta-delete w-full" onClick={() => openDelete({ type: 'course', title: course.title })} disabled={busy}>
+                      <Trash2 size={15} aria-hidden="true" /> Eliminar curso
+                    </button>
                   </div>
                 ) : !user ? (
                   <Button to="/registro" icon={ArrowRight} iconPosition="end" className="course-cta-solid w-full">Crear cuenta para acceder</Button>
@@ -396,6 +435,27 @@ export function CoursePage() {
           </div>
         </div>
       </div>
+
+      <Modal
+        open={Boolean(pendingDelete)}
+        onClose={closeDelete}
+        title={pendingDelete?.type === 'course' ? 'Eliminar curso' : 'Eliminar simulación'}
+        description={pendingDelete?.type === 'course'
+          ? 'Se eliminará este curso, sus simulaciones, inscripciones y todo el historial relacionado de los estudiantes.'
+          : 'Se eliminará esta simulación y todo el historial de conversaciones y evaluaciones relacionado.'}
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeDelete} disabled={deleteBusy}>Cancelar</Button>
+            <Button variant="danger" icon={Trash2} onClick={confirmDelete} disabled={deleteBusy}>
+              {deleteBusy ? 'Eliminando…' : pendingDelete?.type === 'course' ? 'Eliminar curso' : 'Eliminar simulación'}
+            </Button>
+          </>
+        }
+      >
+        <p className="delete-warning">Esta acción no se puede deshacer.</p>
+        {pendingDelete?.title ? <p className="delete-target">{pendingDelete.title}</p> : null}
+        {deleteError ? <Message tone="error" className="mt-3">{deleteError}</Message> : null}
+      </Modal>
     </div>
   );
 }

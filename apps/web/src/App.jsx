@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom';
 import { AuthProvider } from './mvp/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { AboutPage } from './mvp/AboutPage';
 import { AuthPage } from './mvp/AuthPage';
 import { CourseEditorPage } from './mvp/CourseEditorPage';
 import { CoursePage } from './mvp/CoursePage';
@@ -17,6 +18,7 @@ export function App() {
   return <ToastProvider><AuthProvider><Routes>
     <Route element={<MvpShell />}>
       <Route path="/" element={<HomePage />} />
+      <Route path="/acerca" element={<AboutPage />} />
       <Route path="/acceso" element={<AuthPage mode="login" />} />
       <Route path="/registro" element={<AuthPage mode="register" />} />
       <Route path="/cursos" element={<CoursesPage />} />

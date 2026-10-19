@@ -16,3 +16,11 @@ export async function api(path, options = {}) {
   }
   return body;
 }
+
+export function deleteCourse(courseId) {
+  return api(`/courses/${courseId}`, { method: 'DELETE' });
+}
+
+export function deleteSimulation(simulationId) {
+  return api(`/simulations/${simulationId}`, { method: 'DELETE' });
+}

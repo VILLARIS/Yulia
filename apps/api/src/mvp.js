@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
-import { query } from './db.js';
+import { pool, query } from './db.js';
 import { clearSession, hashPassword, optionalUser, requireRole, requireUser, setSession, verifyPassword } from './auth.js';
 
 export const mvp = Router();
@@ -124,4 +124,54 @@ mvp.patch('/simulations/:simulationId', requireUser, requireRole('teacher'), run
   const data = parse(simulationInput.partial().refine((value) => Object.keys(value).length > 0), req.body, res); if (!data) return;
   const { rows } = await query(`UPDATE clinical_cases s SET title = COALESCE($3, s.title), topic = COALESCE($3, s.topic), clinical_situation = COALESCE($4, s.clinical_situation), academic_challenge = COALESCE($5, s.academic_challenge), tutor_instructions = COALESCE($6, s.tutor_instructions), published = COALESCE($7, s.published), version = s.version + 1, updated_at = now() FROM courses c WHERE s.id = $1 AND c.id = s.course_id AND c.teacher_id = $2 RETURNING ${qualified(simulationSelect, 's')}`, [id, req.user.id, data.title ?? null, data.scenario ?? null, data.objective ?? null, data.tutorInstructions ?? null, data.published ?? null]);
   return rows[0] ? res.json({ simulation: rows[0] }) : res.status(404).json({ error: 'Simulación no encontrada' });
+}));
+
+// Las sesiones de una simulación (o de un curso) se referencian desde varias
+// tablas. El borrado elimina cada nivel de dependencia en orden y dentro de una
+// única transacción, de modo que un fallo intermedio deja todo intacto.
+async function removeSimulationHistory(client, sessionCondition, value) {
+  await client.query(`DELETE FROM rubric_scores WHERE evaluation_id IN (SELECT e.id FROM evaluations e WHERE e.session_id IN (${sessionCondition}))`, [value]);
+  await client.query(`DELETE FROM evaluations WHERE session_id IN (${sessionCondition})`, [value]);
+  await client.query(`DELETE FROM recording_metadata WHERE session_id IN (${sessionCondition})`, [value]);
+  await client.query(`DELETE FROM supervision_events WHERE session_id IN (${sessionCondition})`, [value]);
+  await client.query(`DELETE FROM conversation_messages WHERE session_id IN (${sessionCondition})`, [value]);
+}
+
+mvp.delete('/simulations/:simulationId', requireUser, requireRole('teacher'), run(async (req, res) => {
+  const id = parse(idSchema, req.params.simulationId, res); if (!id) return;
+  const { rows } = await query('SELECT s.id FROM clinical_cases s JOIN courses c ON c.id = s.course_id WHERE s.id = $1 AND c.teacher_id = $2', [id, req.user.id]);
+  if (!rows[0]) return res.status(404).json({ error: 'Simulación no encontrada' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await removeSimulationHistory(client, 'SELECT id FROM simulation_sessions WHERE clinical_case_id = $1', id);
+    await client.query('DELETE FROM simulation_sessions WHERE clinical_case_id = $1', [id]);
+    await client.query('DELETE FROM clinical_cases WHERE id = $1', [id]);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+  res.status(204).end();
+}));
+
+mvp.delete('/courses/:courseId', requireUser, requireRole('teacher'), run(async (req, res) => {
+  const id = parse(idSchema, req.params.courseId, res); if (!id) return;
+  if (!(await ownCourse(id, req.user.id))) return res.status(404).json({ error: 'Curso no encontrado' });
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    await removeSimulationHistory(client, 'SELECT id FROM simulation_sessions WHERE clinical_case_id IN (SELECT id FROM clinical_cases WHERE course_id = $1)', id);
+    await client.query('DELETE FROM simulation_sessions WHERE clinical_case_id IN (SELECT id FROM clinical_cases WHERE course_id = $1)', [id]);
+    await client.query('DELETE FROM clinical_cases WHERE course_id = $1', [id]);
+    await client.query('DELETE FROM enrollments WHERE course_id = $1', [id]);
+    await client.query('DELETE FROM courses WHERE id = $1', [id]);
+    await client.query('COMMIT');
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally { client.release(); }
+  res.status(204).end();
 }));

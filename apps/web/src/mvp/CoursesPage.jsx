@@ -1,20 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { Activity, Apple, ArrowRight, BookOpen, Brain, FlaskConical, HeartPulse, Microscope, Salad, Search, UserRound } from 'lucide-react';
-import { PageHeader } from '../components/layout/PageHeader';
-import { Section } from '../components/layout/Section';
+import { Activity, Apple, ArrowRight, BookOpen, Brain, CalendarDays, CheckCircle2, FlaskConical, HeartPulse, Microscope, PenLine, Plus, Salad, Search, Trash2, UserRound } from 'lucide-react';
 import { Button } from '../components/ui/Button';
-import { Card, CardBody } from '../components/ui/Card';
 import { EmptyState } from '../components/ui/EmptyState';
 import { Message } from '../components/ui/Message';
+import { Modal } from '../components/ui/Modal';
 import { StatusBadge } from '../components/ui/StatusBadge';
-import { api } from './api';
+import { api, deleteCourse } from './api';
 import { useAuth } from './AuthContext';
 
 /* Cada tarjeta recibe un tono y un icono según su posición: determinista y
  * estable entre renders, sin aleatoriedad ni datos que el curso no tenga. */
 const VISUAL_TONES = ['course-card-visual-green', 'course-card-visual-blue', 'course-card-visual-cream', 'course-card-visual-teal'];
 const VISUAL_ICONS = [BookOpen, FlaskConical, Apple, Activity, Microscope, Brain, Salad, HeartPulse];
+
+/* Tono del chip de las tarjetas de gestión del docente, en la misma paleta. */
+const TEACHER_CHIP_TONES = ['teacher-card-chip-green', 'teacher-card-chip-blue', 'teacher-card-chip-cream', 'teacher-card-chip-teal'];
+
+const dateFormatter = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
+
+function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : dateFormatter.format(date);
+}
 
 const FILTERS = [
   { key: 'all', label: 'Todos' },
@@ -64,6 +73,53 @@ function CourseCard({ course, index, isAuthenticated, enrolled }) {
   );
 }
 
+function TeacherCourseCard({ course, index, onDelete, busy }) {
+  const Icon = VISUAL_ICONS[index % VISUAL_ICONS.length];
+  const chip = TEACHER_CHIP_TONES[index % TEACHER_CHIP_TONES.length];
+  const updated = formatDate(course.updatedAt);
+  const viewPath = `/docente/cursos/${course.id}`;
+  const editPath = `/docente/cursos/${course.id}/editar`;
+
+  return (
+    <li>
+      <article className="teacher-card">
+        <div className="teacher-card-top">
+          <span className={`teacher-card-chip ${chip}`} aria-hidden="true">
+            <Icon size={22} strokeWidth={1.7} />
+          </span>
+          <StatusBadge variant={course.published ? 'success' : 'warning'} dot>
+            {course.published ? 'Publicado' : 'Borrador'}
+          </StatusBadge>
+        </div>
+        <h2 className="teacher-card-title line-clamp-2">{course.title}</h2>
+        <p className="teacher-card-desc line-clamp-3">{course.description || 'Sin descripción.'}</p>
+        {updated ? (
+          <p className="teacher-card-meta">
+            <CalendarDays size={14} aria-hidden="true" /> Actualizado el {updated}
+          </p>
+        ) : null}
+        <div className="teacher-card-foot">
+          <Button to={viewPath} variant="secondary" icon={ArrowRight} iconPosition="end" className="teacher-cta-view">
+            Ver curso
+          </Button>
+          <Link to={editPath} className="teacher-cta-edit">
+            <PenLine size={15} aria-hidden="true" /> Editar
+          </Link>
+          <button
+            type="button"
+            className="teacher-cta-delete"
+            onClick={() => onDelete(course)}
+            disabled={busy}
+            aria-label={`Eliminar ${course.title}`}
+          >
+            <Trash2 size={15} aria-hidden="true" /> Eliminar
+          </button>
+        </div>
+      </article>
+    </li>
+  );
+}
+
 export function CoursesPage() {
   const { user } = useAuth();
   const teacher = user?.role === 'teacher';
@@ -72,6 +128,9 @@ export function CoursesPage() {
   const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
+  const [pendingDelete, setPendingDelete] = useState(null);
+  const [deleteBusy, setDeleteBusy] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -88,29 +147,112 @@ export function CoursesPage() {
     return matchesTerm && matchesFilter;
   }), [courses, term, filter]);
 
+  const openDelete = (course) => { setDeleteError(''); setPendingDelete(course); };
+  const closeDelete = () => { if (deleteBusy) return; setPendingDelete(null); setDeleteError(''); };
+  const confirmDelete = async () => {
+    setDeleteBusy(true); setDeleteError('');
+    try {
+      await deleteCourse(pendingDelete.id);
+      setCourses((current) => current.filter((item) => item.id !== pendingDelete.id));
+      setPendingDelete(null);
+    } catch (cause) { setDeleteError(cause.message); }
+    finally { setDeleteBusy(false); }
+  };
+
   // El docente conserva su panel de gestión; el catálogo público es para el
   // visitante y para el estudiante, con una única implementación.
   if (teacher) {
-    return <>
-      <PageHeader title="Mis cursos" description="Crea cursos y prepara sus simulaciones." actions={<Button to="/docente/cursos/nuevo">Crear curso</Button>} />
-      <Section>
-        {loading && <p role="status">Cargando cursos…</p>}
-        {error && <Message tone="error">{error}</Message>}
-        {!loading && !error && courses.length === 0 && <EmptyState title="Todavía no tienes cursos" description="Crea tu primer curso para añadir simulaciones." action={<Button to="/docente/cursos/nuevo">Crear curso</Button>} />}
-        <div className="grid gap-5 md:grid-cols-2 lg:grid-cols-3">
-          {courses.map((course) => <Card key={course.id}>
-            <CardBody className="flex h-full flex-col">
-              <div className="flex flex-wrap gap-2">
-                <StatusBadge variant={course.published ? 'success' : 'warning'}>{course.published ? 'Publicado' : 'No publicado'}</StatusBadge>
+    const published = courses.filter((course) => course.published).length;
+    const drafts = courses.length - published;
+    const hasCourses = courses.length > 0;
+
+    return (
+      <div className="courses-page teacher-page">
+        <section className="teacher-hero">
+          <div className="site-container">
+            <p className="teacher-eyebrow">Panel docente</p>
+            <div className="teacher-hero-row">
+              <div className="min-w-0">
+                <h1 className="teacher-title">Mis cursos</h1>
+                <p className="teacher-subtitle">Gestiona tus cursos y prepara sus simulaciones.</p>
               </div>
-              <h2 className="mt-4 text-lg font-bold text-[#173b6c]">{course.title}</h2>
-              <p className="mt-2 flex-1 text-sm leading-6 text-[#5c6f82]">{course.description || 'Sin descripción.'}</p>
-              <Link className="mt-5 text-sm font-semibold text-[#2b8537] underline underline-offset-4 hover:text-[#237a32]" to={`/docente/cursos/${course.id}`}>Ver curso</Link>
-            </CardBody>
-          </Card>)}
-        </div>
-      </Section>
-    </>;
+              <Button to="/docente/cursos/nuevo" icon={Plus} className="teacher-create">Crear curso</Button>
+            </div>
+
+            {!loading && !error && hasCourses ? (
+              <div className="teacher-metrics">
+                <div className="teacher-metric">
+                  <span className="teacher-metric-icon teacher-metric-icon-green" aria-hidden="true"><CheckCircle2 size={18} strokeWidth={1.9} /></span>
+                  <span>
+                    <span className="teacher-metric-value">{published}</span>
+                    <span className="teacher-metric-label">{published === 1 ? 'Publicado' : 'Publicados'}</span>
+                  </span>
+                </div>
+                <div className="teacher-metric">
+                  <span className="teacher-metric-icon teacher-metric-icon-amber" aria-hidden="true"><PenLine size={18} strokeWidth={1.9} /></span>
+                  <span>
+                    <span className="teacher-metric-value">{drafts}</span>
+                    <span className="teacher-metric-label">{drafts === 1 ? 'Borrador' : 'Borradores'}</span>
+                  </span>
+                </div>
+                <div className="teacher-metric">
+                  <span className="teacher-metric-icon teacher-metric-icon-blue" aria-hidden="true"><BookOpen size={18} strokeWidth={1.9} /></span>
+                  <span>
+                    <span className="teacher-metric-value">{courses.length}</span>
+                    <span className="teacher-metric-label">{courses.length === 1 ? 'Curso total' : 'Cursos totales'}</span>
+                  </span>
+                </div>
+              </div>
+            ) : null}
+          </div>
+        </section>
+
+        <section className="teacher-main">
+          <div className="site-container">
+            {loading ? (
+              <div className="teacher-grid" aria-hidden="true">
+                {[0, 1, 2].map((index) => <li key={index} className="teacher-card course-card-skeleton" />)}
+              </div>
+            ) : null}
+            {error ? <Message tone="error">{error}</Message> : null}
+            {!loading && !error && !hasCourses ? (
+              <EmptyState
+                icon={BookOpen}
+                title="Todavía no tienes cursos"
+                description="Crea tu primer curso para empezar a añadir simulaciones."
+                action={<Button to="/docente/cursos/nuevo" icon={Plus}>Crear curso</Button>}
+              />
+            ) : null}
+            {!loading && !error && hasCourses ? (
+              <ul className="teacher-grid">
+                {courses.map((course, index) => (
+                  <TeacherCourseCard key={course.id} course={course} index={index} onDelete={openDelete} busy={deleteBusy} />
+                ))}
+              </ul>
+            ) : null}
+          </div>
+        </section>
+
+        <Modal
+          open={Boolean(pendingDelete)}
+          onClose={closeDelete}
+          title="Eliminar curso"
+          description="Se eliminará este curso, sus simulaciones, inscripciones y todo el historial relacionado de los estudiantes."
+          footer={
+            <>
+              <Button variant="secondary" onClick={closeDelete} disabled={deleteBusy}>Cancelar</Button>
+              <Button variant="danger" icon={Trash2} onClick={confirmDelete} disabled={deleteBusy}>
+                {deleteBusy ? 'Eliminando…' : 'Eliminar curso'}
+              </Button>
+            </>
+          }
+        >
+          <p className="delete-warning">Esta acción no se puede deshacer.</p>
+          {pendingDelete ? <p className="delete-target">{pendingDelete.title}</p> : null}
+          {deleteError ? <Message tone="error" className="mt-3">{deleteError}</Message> : null}
+        </Modal>
+      </div>
+    );
   }
 
   const isAuthenticated = Boolean(user);
