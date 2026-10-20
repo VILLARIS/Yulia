@@ -73,7 +73,41 @@ test('chat persistente, contexto y aislamiento entre estudiantes', { skip: !proc
     await call(`/courses/${courseId}/enroll`, 'POST', null, intruder.cookie);
     assert.equal((await call(`/sessions/${sessionId}/messages`, 'POST', { apiKey: 'valid-key', content: 'Ataque', expectedLastSequence: 3 }, intruder.cookie)).status, 404);
 
+    assert.equal((await call(`/sessions/${sessionId}/complete`, 'POST', null, teacher.cookie)).status, 403);
+    assert.equal((await call(`/sessions/${sessionId}/complete`, 'POST', null, intruder.cookie)).status, 404);
+    const completed = await call(`/sessions/${sessionId}/complete`, 'POST', null, student.cookie);
+    assert.equal(completed.status, 200);
+    assert.equal(completed.data.session.status, 'completed');
+    assert.ok(completed.data.session.completedAt);
+    const repeated = await call(`/sessions/${sessionId}/complete`, 'POST', null, student.cookie);
+    assert.equal(repeated.status, 200);
+    assert.equal(repeated.data.session.completedAt, completed.data.session.completedAt);
+
+    const callsBefore = generated.length;
+    const blocked = await call(`/sessions/${sessionId}/messages`, 'POST', { apiKey: 'valid-key', content: 'Después de finalizar', expectedLastSequence: 3 }, student.cookie);
+    assert.equal(blocked.status, 409);
+    assert.equal(blocked.data.error, 'La simulación ya fue finalizada');
+    assert.equal(generated.length, callsBefore);
+
+    const afterComplete = await call(`/simulations/${simulationId}/session`, 'GET', null, student.cookie);
+    assert.equal(afterComplete.data.session.status, 'completed');
+    assert.equal(afterComplete.data.session.completedAt, completed.data.session.completedAt);
+    assert.deepEqual(afterComplete.data.messages.map((message) => message.content), ['Primera pregunta del tutor', 'Mi razonamiento', 'Segunda respuesta del tutor']);
+
+    await new Promise((resolve) => server.close(resolve));
+    server = createApp({ generate }).listen(0);
+    await new Promise((resolve) => server.once('listening', resolve));
+    base = `http://127.0.0.1:${server.address().port}/api`;
+    const persistedCompleted = await call(`/simulations/${simulationId}/session`, 'GET', null, student.cookie);
+    assert.equal(persistedCompleted.data.session.status, 'completed');
+    assert.equal(persistedCompleted.data.session.completedAt, completed.data.session.completedAt);
+    assert.equal(persistedCompleted.data.messages.length, 3);
+    assert.equal((await call(`/sessions/${sessionId}/messages`, 'POST', { apiKey: 'valid-key', content: 'Otra vez', expectedLastSequence: 3 }, student.cookie)).status, 409);
+
     const stored = await query('SELECT row_to_json(s)::text AS data FROM simulation_sessions s WHERE id = $1', [sessionId]);
+    const storedSession = await query('SELECT status, completed_at FROM simulation_sessions WHERE id = $1', [sessionId]);
+    assert.equal(storedSession.rows[0].status, 'completed');
+    assert.ok(storedSession.rows[0].completed_at);
     const messageRows = await query('SELECT row_to_json(m)::text AS data FROM conversation_messages m WHERE session_id = $1', [sessionId]);
     assert.equal([stored.rows[0].data, ...messageRows.rows.map((row) => row.data)].join(' ').includes('valid-key'), false);
   } finally {

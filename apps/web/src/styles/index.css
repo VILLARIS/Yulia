@@ -1534,8 +1534,6 @@
 
   .editor-card-title-row { @apply flex items-center gap-1.5; }
 
-  .editor-duration-control input { max-width: 10rem; }
-
   .editor-actions { @apply flex flex-wrap items-center gap-3; }
 
   .editor-save {
@@ -2307,6 +2305,31 @@
     box-shadow: 0 0 0 3px rgb(103 196 71 / 0.2);
   }
 
+  .sim-chat-online-done { color: #5c6f82; }
+  .sim-chat-online-done .sim-chat-online-dot { background-color: #9aa8b4; box-shadow: none; }
+
+  .sim-chat-actions { @apply flex shrink-0 flex-wrap items-center justify-end gap-2; }
+
+  /* Finalización manual: acción secundaria, sin rojo intenso. */
+  .sim-finish {
+    @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg border border-[#cfdcdc] bg-white px-3.5 py-1.5 text-[13px] font-semibold text-[#173b6c] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#173b6c] focus-visible:ring-offset-2;
+    cursor: pointer;
+  }
+
+  .sim-finish:hover { background-color: #eef6fb; border-color: #b9cfdd; }
+  .sim-finish:disabled { @apply cursor-not-allowed opacity-55; }
+
+  .sim-finished {
+    @apply flex items-start gap-2.5 rounded-xl border border-[#cfe6c8] bg-[#f4faf1] px-3.5 py-3;
+  }
+
+  .sim-finished-icon {
+    @apply mt-0.5 grid size-8 shrink-0 place-items-center rounded-full bg-[#eaf6e4] text-[#2b8537];
+  }
+
+  .sim-finished-title { @apply text-sm font-bold text-[#173b6c]; }
+  .sim-finished-text { @apply mt-0.5 text-xs leading-5 text-[#5c6f82]; }
+
   /* Exportar la conversación completa como .txt desde el navegador. */
   .sim-export {
     @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
@@ -2467,6 +2490,7 @@
     .sim-bubble,
     .sim-row-student .sim-bubble { @apply max-w-[88%]; }
     .sim-export span { @apply hidden sm:inline; }
+    .sim-finish span { @apply hidden sm:inline; }
   }
 }
 

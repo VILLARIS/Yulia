@@ -2,7 +2,7 @@ import { useCallback, useEffect, useId, useLayoutEffect, useRef, useState } from
 import { createPortal } from 'react-dom';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  ArrowLeft, CircleHelp, Eye, FlaskConical, Info, Lightbulb, Save, Sparkles, Timer, Trash2,
+  ArrowLeft, CircleHelp, Eye, FlaskConical, Info, Lightbulb, Save, Sparkles, Trash2,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { TextAreaField, TextField } from '../components/ui/Field';
@@ -31,10 +31,6 @@ const HELP = {
     text: 'Indica cómo quieres que Yulia guíe al estudiante durante la conversación. Estas instrucciones no son visibles para el estudiante.',
     example: 'Haz preguntas breves, da pistas si se equivoca y evita entregar la respuesta completa inmediatamente.',
     avoid: 'Repetir aquí todo el escenario o el objetivo.',
-  },
-  duration: {
-    text: 'Define el número máximo de respuestas que podrá dar el estudiante antes de que la simulación deba cerrarse. Yulia podrá terminar antes si el estudiante alcanza el objetivo.',
-    example: '6 respuestas suele ser suficiente para una conversación breve.',
   },
   visibility: {
     text: 'Controla si los estudiantes pueden encontrar y abrir esta simulación.',
@@ -129,11 +125,10 @@ function FieldHelp({ label, text, example, avoid }) {
 export function SimulationEditorPage() {
   const { courseId, simulationId } = useParams();
   const navigate = useNavigate();
-  const [values, setValues] = useState({ title: '', scenario: '', objective: '', tutorInstructions: '', maxStudentTurns: 6, published: false });
+  const [values, setValues] = useState({ title: '', scenario: '', objective: '', tutorInstructions: '', published: false });
   const [parentId, setParentId] = useState(courseId);
   const [loading, setLoading] = useState(Boolean(simulationId));
   const [busy, setBusy] = useState(false);
-  const [durationError, setDurationError] = useState('');
   const [error, setError] = useState('');
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [deleteBusy, setDeleteBusy] = useState(false);
@@ -148,7 +143,6 @@ export function SimulationEditorPage() {
           scenario: simulation.scenario ?? '',
           objective: simulation.objective ?? '',
           tutorInstructions: simulation.tutorInstructions ?? '',
-          maxStudentTurns: simulation.maxStudentTurns ?? 6,
           published: simulation.published,
         });
         setParentId(simulation.courseId);
@@ -159,15 +153,9 @@ export function SimulationEditorPage() {
   }, [simulationId]);
 
   const submit = async (event) => {
-    event.preventDefault();
-    const maxStudentTurns = Number(values.maxStudentTurns);
-    if (!Number.isInteger(maxStudentTurns) || maxStudentTurns < 3 || maxStudentTurns > 12) {
-      setDurationError('Elige un número entre 3 y 12 respuestas.');
-      return;
-    }
-    setDurationError(''); setBusy(true); setError('');
+    event.preventDefault(); setBusy(true); setError('');
     try {
-      await api(simulationId ? `/simulations/${simulationId}` : `/courses/${courseId}/simulations`, { method: simulationId ? 'PATCH' : 'POST', body: JSON.stringify({ ...values, maxStudentTurns }) });
+      await api(simulationId ? `/simulations/${simulationId}` : `/courses/${courseId}/simulations`, { method: simulationId ? 'PATCH' : 'POST', body: JSON.stringify(values) });
       navigate(`/docente/cursos/${parentId}`);
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
@@ -305,41 +293,6 @@ export function SimulationEditorPage() {
                       <Info size={15} aria-hidden="true" />
                       <span>Estas instrucciones solo las ves tú; se envían a Gemini como contexto de la simulación.</span>
                     </p>
-                  </div>
-                </div>
-
-                <div className="editor-card">
-                  <div className="editor-card-head">
-                    <span className="editor-card-icon editor-card-icon-green" aria-hidden="true"><Timer size={18} strokeWidth={1.9} /></span>
-                    <div className="editor-card-headtext">
-                      <h2 className="editor-card-title">Duración de la simulación</h2>
-                      <p className="editor-card-sub">Define cuánto puede extenderse la conversación con el estudiante.</p>
-                    </div>
-                  </div>
-                  <div className="editor-card-body">
-                    <div className="editor-duration-control">
-                      <TextField
-                        label="¿Cuántas respuestas tendrá como máximo el estudiante?"
-                        help={<FieldHelp label="Duración de la simulación" {...HELP.duration} />}
-                        type="number"
-                        inputMode="numeric"
-                        min={3}
-                        max={12}
-                        step={1}
-                        value={values.maxStudentTurns}
-                        onChange={(event) => {
-                          setValues({ ...values, maxStudentTurns: event.target.value === '' ? '' : Number(event.target.value) });
-                          if (durationError) setDurationError('');
-                        }}
-                        onBlur={() => {
-                          const turns = Number(values.maxStudentTurns);
-                          if (!Number.isInteger(turns) || turns < 3 || turns > 12) setDurationError('Elige un número entre 3 y 12 respuestas.');
-                        }}
-                        hint="Yulia puede terminar antes si el estudiante ya alcanzó el objetivo."
-                        error={durationError}
-                        required
-                      />
-                    </div>
                   </div>
                 </div>
 

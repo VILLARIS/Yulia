@@ -27,13 +27,13 @@ async function availableSimulation(id, studentId) {
   return rows[0];
 }
 
-async function ownSession(id, studentId) {
+async function ownSession(id, studentId, includeCompleted = false) {
   const { rows } = await query(`SELECT ss.id, ss.clinical_case_id AS "simulationId", ss.status,
-    ss.created_at AS "createdAt" FROM simulation_sessions ss
+    ss.started_at AS "startedAt", ss.completed_at AS "completedAt", ss.created_at AS "createdAt" FROM simulation_sessions ss
     JOIN clinical_cases s ON s.id = ss.clinical_case_id
     JOIN courses c ON c.id = s.course_id
     JOIN enrollments e ON e.course_id = c.id AND e.student_id = ss.student_id
-    WHERE ss.id = $1 AND ss.student_id = $2 AND ss.status = 'active'
+    WHERE ss.id = $1 AND ss.student_id = $2 ${includeCompleted ? '' : "AND ss.status = 'active'"}
     AND s.published = true AND c.published = true`, [id, studentId]);
   return rows[0];
 }
@@ -74,8 +74,9 @@ export function createChatRouter({ generate = generateGemini } = {}) {
   chat.get('/simulations/:simulationId/session', wrap(async (req, res) => {
     const id = read(uuid, req.params.simulationId, res); if (!id) return;
     if (!(await availableSimulation(id, req.user.id))) return res.status(404).json({ error: 'Simulación no disponible' });
-    const { rows } = await query(`SELECT id, clinical_case_id AS "simulationId", status, created_at AS "createdAt"
-      FROM simulation_sessions WHERE clinical_case_id = $1 AND student_id = $2 AND status = 'active'
+    const { rows } = await query(`SELECT id, clinical_case_id AS "simulationId", status, started_at AS "startedAt",
+      completed_at AS "completedAt", created_at AS "createdAt"
+      FROM simulation_sessions WHERE clinical_case_id = $1 AND student_id = $2 AND status IN ('active', 'completed')
       ORDER BY created_at DESC LIMIT 1`, [id, req.user.id]);
     const session = rows[0] ?? null;
     res.json({ session, messages: session ? await sessionMessages(session.id) : [] });
@@ -115,11 +116,22 @@ export function createChatRouter({ generate = generateGemini } = {}) {
     } finally { client.release(); }
   }));
 
+  chat.post('/sessions/:sessionId/complete', wrap(async (req, res) => {
+    const id = read(uuid, req.params.sessionId, res); if (!id) return;
+    const { rows } = await query(`UPDATE simulation_sessions SET status = 'completed', completed_at = COALESCE(completed_at, now())
+      WHERE id = $1 AND student_id = $2
+      RETURNING id, clinical_case_id AS "simulationId", status, started_at AS "startedAt", completed_at AS "completedAt", created_at AS "createdAt"`, [id, req.user.id]);
+    if (!rows[0]) return res.status(404).json({ error: 'Sesión no disponible' });
+    res.json({ session: rows[0] });
+  }));
+
   chat.post('/sessions/:sessionId/messages', wrap(async (req, res) => {
     const id = read(uuid, req.params.sessionId, res); if (!id) return;
     const data = read(messageInput, req.body, res); if (!data) return;
-    const session = await ownSession(id, req.user.id);
+    const session = await ownSession(id, req.user.id, true);
     if (!session) return res.status(404).json({ error: 'Sesión no disponible' });
+    if (session.status === 'completed') return res.status(409).json({ error: 'La simulación ya fue finalizada' });
+    if (session.status !== 'active') return res.status(404).json({ error: 'Sesión no disponible' });
     const simulation = await availableSimulation(session.simulationId, req.user.id);
     if (!simulation) return res.status(404).json({ error: 'Simulación no disponible' });
     const previous = await sessionMessages(id);
@@ -136,8 +148,9 @@ export function createChatRouter({ generate = generateGemini } = {}) {
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      const locked = await client.query(`SELECT id FROM simulation_sessions WHERE id = $1 AND student_id = $2 AND status = 'active' FOR UPDATE`, [id, req.user.id]);
+      const locked = await client.query(`SELECT status FROM simulation_sessions WHERE id = $1 AND student_id = $2 FOR UPDATE`, [id, req.user.id]);
       if (!locked.rowCount) { await client.query('ROLLBACK'); return res.status(404).json({ error: 'Sesión no disponible' }); }
+      if (locked.rows[0].status !== 'active') { await client.query('ROLLBACK'); return res.status(409).json({ error: 'La simulación ya fue finalizada' }); }
       const current = await client.query('SELECT COALESCE(MAX(sequence_number), 0) AS last FROM conversation_messages WHERE session_id = $1', [id]);
       if (current.rows[0].last !== lastSequence) { await client.query('ROLLBACK'); return res.status(409).json({ error: 'La conversación cambió. Recarga antes de continuar.' }); }
       const student = await client.query(`INSERT INTO conversation_messages (session_id, role, stage, content, sequence_number)

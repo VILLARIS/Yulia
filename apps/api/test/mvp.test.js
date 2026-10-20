@@ -36,16 +36,10 @@ test('flujo persistente docente → estudiante y permisos', { skip: !process.env
     created.course = course.data.course.id;
     const simulation = await call(`/courses/${created.course}/simulations`, 'POST', { title: 'Simulación de prueba', scenario: 'Escenario de diez caracteres o más.', objective: 'Razonar el caso', tutorInstructions: 'Guiar mediante preguntas.', published: false }, teacherCookie);
     assert.equal(simulation.status, 201);
-    assert.equal(simulation.data.simulation.maxStudentTurns, 6);
     created.simulation = simulation.data.simulation.id;
     const publication = await call(`/simulations/${created.simulation}`, 'PATCH', { published: true }, teacherCookie);
     assert.equal(publication.status, 200);
     assert.equal(publication.data.simulation.published, true);
-    const duration = await call(`/simulations/${created.simulation}`, 'PATCH', { maxStudentTurns: 4 }, teacherCookie);
-    assert.equal(duration.status, 200);
-    assert.equal(duration.data.simulation.maxStudentTurns, 4);
-    assert.equal((await call(`/simulations/${created.simulation}`, 'PATCH', { maxStudentTurns: 2 }, teacherCookie)).status, 400);
-    assert.equal((await call(`/simulations/${created.simulation}`, 'PATCH', { maxStudentTurns: 13 }, teacherCookie)).status, 400);
 
     const other = await call('/auth/register', 'POST', { name: 'Otra docente', email: `other-${marker}@example.test`, password, role: 'teacher' });
     created.users.push(other.data.user.id);
@@ -74,7 +68,6 @@ test('flujo persistente docente → estudiante y permisos', { skip: !process.env
     const persisted = await call(`/courses/${created.course}/simulations`, 'GET', null, loggedTeacher.cookie);
     assert.equal(persisted.data.simulations[0].id, created.simulation);
     assert.equal(persisted.data.simulations[0].published, true);
-    assert.equal(persisted.data.simulations[0].maxStudentTurns, 4);
     const loggedStudent = await call('/auth/login', 'POST', { email: `student-${marker}@example.test`, password });
     assert.equal((await call(`/courses/${created.course}/simulations`, 'GET', null, loggedStudent.cookie)).data.simulations.length, 1);
   } finally {

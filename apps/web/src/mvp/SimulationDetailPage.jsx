@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeft, ChevronDown, ClipboardList, Download, KeyRound,
+  ArrowLeft, CheckCircle2, ChevronDown, ClipboardList, Download, KeyRound,
   Lightbulb, MessageCircle, Send, Sparkles, Target, UserRound,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { Message } from '../components/ui/Message';
+import { Modal } from '../components/ui/Modal';
 import { RichText } from '../components/ui/RichText';
 import { TextField } from '../components/ui/Field';
 import { YuliaAvatar } from '../components/brand/YuliaAvatar';
@@ -41,7 +42,9 @@ export function SimulationDetailPage() {
   const [scenarioOpen, setScenarioOpen] = useState(true);
   const [objectiveOpen, setObjectiveOpen] = useState(true);
   const [guideOpen, setGuideOpen] = useState(false);
+  const [confirmFinish, setConfirmFinish] = useState(false);
   const endRef = useRef(null);
+  const completed = session?.status === 'completed';
   useEffect(() => {
     let active = true;
     Promise.all([api(`/simulations/${simulationId}`), api(`/simulations/${simulationId}/session`)])
@@ -81,6 +84,12 @@ export function SimulationDetailPage() {
     clearGeminiKey(); setKey(''); setKeyDraft(''); setEditingKey(true); setNotice(''); setError('');
   }
 
+  async function reloadConversation() {
+    const result = await api(`/simulations/${simulationId}/session`);
+    setSession(result.session);
+    setMessages(result.messages);
+  }
+
   async function start() {
     if (!key) return setError('Configura tu API key de Gemini primero.');
     setBusy(true); setError(''); setNotice('');
@@ -89,18 +98,33 @@ export function SimulationDetailPage() {
       setSession(result.session); setMessages(result.messages);
     } catch (cause) {
       if (cause.status === 409) {
-        try {
-          const result = await api(`/simulations/${simulationId}/session`);
-          setSession(result.session); setMessages(result.messages);
-        } catch (reloadError) { setError(reloadError.message); }
+        try { await reloadConversation(); } catch (reloadError) { setError(reloadError.message); }
       } else setError(cause.message);
     } finally { setBusy(false); }
+  }
+
+  async function finishSimulation() {
+    if (!session || busy) return;
+    setBusy(true); setError(''); setNotice('');
+    try {
+      const result = await api(`/sessions/${session.id}/complete`, { method: 'POST' });
+      setSession(result.session);
+      setConfirmFinish(false);
+      push({ tone: 'success', title: 'Simulación finalizada', description: 'Ya no admite nuevas respuestas. Puedes revisar o exportar la conversación.' });
+    } catch (cause) {
+      setError(cause.message);
+      setConfirmFinish(false);
+    } finally { setBusy(false); }
+  }
+
+  function closeFinish() {
+    if (!busy) setConfirmFinish(false);
   }
 
   async function send(event) {
     event?.preventDefault();
     const content = draft.trim();
-    if (!content || busy) return;
+    if (!content || busy || completed) return;
     if (!key) return setError('Configura tu API key de Gemini para continuar.');
     setBusy(true); setError(''); setNotice('');
     try {
@@ -108,7 +132,10 @@ export function SimulationDetailPage() {
         apiKey: key, content, expectedLastSequence: messages.at(-1)?.sequenceNumber ?? 0,
       }) });
       setMessages((current) => [...current, ...result.messages]); setDraft('');
-    } catch (cause) { setError(cause.message); }
+    } catch (cause) {
+      setError(cause.message);
+      if (cause.status === 409) await reloadConversation().catch(() => {});
+    }
     finally { setBusy(false); }
   }
 
@@ -292,23 +319,37 @@ export function SimulationDetailPage() {
                 <div className="sim-chat-id">
                   <p className="sim-chat-name">Yulia IA</p>
                   <p className="sim-chat-role">Tu tutora en bioquímica nutricional</p>
-                  <span className="sim-chat-online">
+                  <span className={`sim-chat-online ${completed ? 'sim-chat-online-done' : ''}`}>
                     <span className="sim-chat-online-dot" aria-hidden="true" />
-                    {session ? 'En línea' : 'Disponible'}
+                    {session ? (completed ? 'Finalizada' : 'En línea') : 'Disponible'}
                   </span>
                 </div>
               </div>
-              <button
-                type="button"
-                className="sim-export"
-                onClick={exportConversation}
-                disabled={messages.length === 0}
-                aria-label="Exportar conversación"
-                title={messages.length === 0 ? 'Aún no hay una conversación para exportar.' : undefined}
-              >
-                <Download size={17} aria-hidden="true" />
-                <span>Exportar conversación</span>
-              </button>
+              <div className="sim-chat-actions">
+                {session && !completed ? (
+                  <button
+                    type="button"
+                    className="sim-finish"
+                    onClick={() => setConfirmFinish(true)}
+                    disabled={busy}
+                    aria-label="Finalizar simulación"
+                  >
+                    <CheckCircle2 size={17} aria-hidden="true" />
+                    <span>Finalizar simulación</span>
+                  </button>
+                ) : null}
+                <button
+                  type="button"
+                  className="sim-export"
+                  onClick={exportConversation}
+                  disabled={messages.length === 0}
+                  aria-label="Exportar conversación"
+                  title={messages.length === 0 ? 'Aún no hay una conversación para exportar.' : undefined}
+                >
+                  <Download size={17} aria-hidden="true" />
+                  <span>Exportar conversación</span>
+                </button>
+              </div>
             </header>
 
             {!session ? (
@@ -361,8 +402,17 @@ export function SimulationDetailPage() {
                 </div>
 
                 <form onSubmit={send} className="sim-composer">
+                  {completed ? (
+                    <div className="sim-finished" role="status">
+                      <span className="sim-finished-icon" aria-hidden="true"><CheckCircle2 size={18} /></span>
+                      <div>
+                        <p className="sim-finished-title">Simulación finalizada</p>
+                        <p className="sim-finished-text">Esta conversación ya no admite nuevas respuestas. Puedes revisar el historial o exportarlo.</p>
+                      </div>
+                    </div>
+                  ) : null}
                   {notice ? <Message tone="success" className="sim-msg">{notice}</Message> : null}
-                  {error ? <Message tone="error" className="sim-msg">{error} {session && draft.trim() ? 'Puedes reintentar el envío.' : null}</Message> : null}
+                  {error ? <Message tone="error" className="sim-msg">{error} {session && !completed && draft.trim() ? 'Puedes reintentar el envío.' : null}</Message> : null}
                   <div className="sim-composer-box">
                     <textarea
                       rows={1}
@@ -372,14 +422,14 @@ export function SimulationDetailPage() {
                       onKeyDown={(event) => {
                         if (event.key === 'Enter' && !event.shiftKey) { event.preventDefault(); send(); }
                       }}
-                      placeholder="Escribe tu respuesta…"
+                      placeholder={completed ? 'La simulación está finalizada' : 'Escribe tu respuesta…'}
                       aria-label="Tu respuesta"
-                      disabled={busy || !key}
+                      disabled={busy || !key || completed}
                       className="sim-composer-input"
                     />
                     <Button
                       type="submit"
-                      disabled={busy || !key || !draft.trim()}
+                      disabled={busy || !key || !draft.trim() || completed}
                       icon={Send}
                       iconPosition="end"
                       className="sim-send-cta"
@@ -387,16 +437,37 @@ export function SimulationDetailPage() {
                       {busy ? 'Enviando…' : 'Enviar'}
                     </Button>
                   </div>
-                  <p className="sim-composer-note">
-                    <MessageCircle size={13} aria-hidden="true" />
-                    Enter para enviar · Shift+Enter para una línea nueva · {draft.length}/4000
-                  </p>
+                  {completed ? null : (
+                    <p className="sim-composer-note">
+                      <MessageCircle size={13} aria-hidden="true" />
+                      Enter para enviar · Shift+Enter para una línea nueva · {draft.length}/4000
+                    </p>
+                  )}
                 </form>
               </>
             )}
           </section>
         </div>
       </div>
+
+      <Modal
+        open={confirmFinish}
+        onClose={closeFinish}
+        title="Finalizar simulación"
+        description="¿Seguro que quieres finalizar esta simulación?"
+        footer={
+          <>
+            <Button variant="secondary" onClick={closeFinish} disabled={busy}>Cancelar</Button>
+            <Button icon={CheckCircle2} onClick={finishSimulation} disabled={busy}>
+              {busy ? 'Finalizando…' : 'Finalizar simulación'}
+            </Button>
+          </>
+        }
+      >
+        <p className="text-sm leading-6 text-slate-600">
+          Después de finalizar ya no podrás enviar más respuestas, pero podrás seguir revisando y exportando la conversación.
+        </p>
+      </Modal>
     </div>
   );
 }
