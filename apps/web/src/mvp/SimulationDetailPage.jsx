@@ -12,6 +12,7 @@ import { YuliaAvatar } from '../components/brand/YuliaAvatar';
 import { useToast } from '../context/ToastContext';
 import { api } from './api';
 import { useAuth } from './AuthContext';
+import { downloadConversationExport } from './conversationExport';
 import { clearGeminiKey, getGeminiKey, setGeminiKey } from './geminiKey';
 
 const timeFormatter = new Intl.DateTimeFormat('es', { hour: '2-digit', minute: '2-digit' });
@@ -109,6 +110,20 @@ export function SimulationDetailPage() {
       setMessages((current) => [...current, ...result.messages]); setDraft('');
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
+  }
+
+  function exportConversation() {
+    if (!simulation || !messages.length) return;
+    try {
+      downloadConversationExport({
+        simulationTitle: simulation.title,
+        studentName: user?.name,
+        messages,
+      });
+      push({ tone: 'success', title: 'Conversación exportada', description: 'Se descargó el archivo .txt con la conversación completa.' });
+    } catch (cause) {
+      push({ tone: 'error', title: 'No se pudo exportar', description: cause.message });
+    }
   }
 
   if (loading) return (
@@ -286,9 +301,11 @@ export function SimulationDetailPage() {
               <button
                 type="button"
                 className="sim-export"
-                aria-label="Exportar conversación (próximamente)"
+                onClick={exportConversation}
+                disabled={messages.length === 0}
+                aria-label="Exportar conversación"
+                title={messages.length === 0 ? 'Aún no hay una conversación para exportar.' : undefined}
               >
-                {/* TODO: conectar la exportación cuando el backend la ofrezca. */}
                 <Download size={17} aria-hidden="true" />
                 <span>Exportar conversación</span>
               </button>

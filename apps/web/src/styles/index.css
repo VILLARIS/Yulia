@@ -2256,7 +2256,7 @@
     box-shadow: 0 0 0 3px rgb(103 196 71 / 0.2);
   }
 
-  /* Botón de exportar en verde (solo visual, sin acción real aún). */
+  /* Exportar la conversación completa como .txt desde el navegador. */
   .sim-export {
     @apply inline-flex min-h-9 shrink-0 items-center justify-center gap-1.5 rounded-lg px-3.5 py-1.5 text-[13px] font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-2;
     background-color: #2b8537;
@@ -2267,6 +2267,12 @@
 
   .sim-export:hover { background-color: #237a32; }
   .sim-export:focus-visible { --tw-ring-color: #173b6c; --tw-ring-offset-color: #ffffff; }
+
+  .sim-export:disabled {
+    background-color: #9cc79a;
+    box-shadow: none;
+    cursor: not-allowed;
+  }
 
   /* Estado vacío: invita a empezar sin verse frío. */
   .sim-chat-empty {
