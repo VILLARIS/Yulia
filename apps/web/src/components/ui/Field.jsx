@@ -5,7 +5,7 @@ import { useId } from 'react';
  * texto de ayuda y error mediante ids, de modo que la tecnología asistiva siempre
  * reciba un nombre accesible y la descripción del error.
  */
-function FieldShell({ id, label, hint, error, required, counter, children }) {
+function FieldShell({ id, label, hint, error, required, counter, help, children }) {
   const hintId = hint ? `${id}-hint` : undefined;
   const errorId = error ? `${id}-error` : undefined;
   const counterId = counter ? `${id}-counter` : undefined;
@@ -14,14 +14,17 @@ function FieldShell({ id, label, hint, error, required, counter, children }) {
   return (
     <div className="min-w-0">
       <div className="flex flex-wrap items-baseline justify-between gap-2">
-        <label htmlFor={id} className="text-sm font-semibold text-navy">
-          {label}
-          {required ? (
-            <span className="ml-1 font-normal text-slate-500" aria-hidden="true">
-              (obligatorio)
-            </span>
-          ) : null}
-        </label>
+        <span className="inline-flex min-w-0 items-center gap-1.5">
+          <label htmlFor={id} className="text-sm font-semibold text-navy">
+            {label}
+            {required ? (
+              <span className="ml-1 font-normal text-slate-500" aria-hidden="true">
+                (obligatorio)
+              </span>
+            ) : null}
+          </label>
+          {help}
+        </span>
         {counter ? (
           <span id={counterId} className="text-xs text-slate-500">
             {counter}
@@ -57,10 +60,10 @@ const CONTROL_ERROR = 'border-red-400 bg-red-50/40';
  * relleno para que el texto no quede debajo; el icono es `aria-hidden` y el
  * nombre accesible lo aporta siempre la etiqueta.
  */
-export function TextField({ label, hint, error, required, icon: Icon, endAction, ...rest }) {
+export function TextField({ label, hint, error, required, icon: Icon, endAction, help, ...rest }) {
   const id = useId();
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} required={required}>
+    <FieldShell id={id} label={label} hint={hint} error={error} required={required} help={help}>
       {({ describedBy, invalid }) => {
         const input = (
           <input
@@ -89,10 +92,10 @@ export function TextField({ label, hint, error, required, icon: Icon, endAction,
   );
 }
 
-export function TextAreaField({ label, hint, error, required, rows = 5, counter, ...rest }) {
+export function TextAreaField({ label, hint, error, required, rows = 5, counter, help, ...rest }) {
   const id = useId();
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} required={required} counter={counter}>
+    <FieldShell id={id} label={label} hint={hint} error={error} required={required} counter={counter} help={help}>
       {({ describedBy, invalid }) => (
         <textarea
           id={id}
@@ -107,10 +110,10 @@ export function TextAreaField({ label, hint, error, required, rows = 5, counter,
   );
 }
 
-export function SelectField({ label, hint, error, required, options, placeholder, ...rest }) {
+export function SelectField({ label, hint, error, required, options, placeholder, help, ...rest }) {
   const id = useId();
   return (
-    <FieldShell id={id} label={label} hint={hint} error={error} required={required}>
+    <FieldShell id={id} label={label} hint={hint} error={error} required={required} help={help}>
       {({ describedBy, invalid }) => (
         <select
           id={id}

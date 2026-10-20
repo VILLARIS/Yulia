@@ -10,9 +10,9 @@ const idSchema = z.string().uuid();
 const registration = z.object({ name: z.string().trim().min(2).max(120), email: z.string().trim().email().max(254), password: z.string().min(8).max(128), role: z.enum(['teacher', 'student']) }).strict();
 const login = z.object({ email: z.string().email(), password: z.string().min(1) }).strict();
 const courseInput = z.object({ title: z.string().trim().min(3).max(200), description: z.string().trim().max(5000), published: z.boolean().optional() }).strict();
-const simulationInput = z.object({ title: z.string().trim().min(3).max(200), scenario: z.string().trim().min(10).max(20000), objective: z.string().trim().min(3).max(5000), tutorInstructions: z.string().trim().min(3).max(20000), published: z.boolean().optional() }).strict();
+const simulationInput = z.object({ title: z.string().trim().min(3).max(200), scenario: z.string().trim().min(10).max(20000), objective: z.string().trim().min(3).max(5000), tutorInstructions: z.string().trim().min(3).max(20000), maxStudentTurns: z.number().int().min(3).max(12).optional(), published: z.boolean().optional() }).strict();
 const courseSelect = 'id, title, description, teacher_id AS "teacherId", published, created_at AS "createdAt", updated_at AS "updatedAt"';
-const simulationSelect = 'id, course_id AS "courseId", title, clinical_situation AS scenario, academic_challenge AS objective, tutor_instructions AS "tutorInstructions", published, created_at AS "createdAt", updated_at AS "updatedAt"';
+const simulationSelect = 'id, course_id AS "courseId", title, clinical_situation AS scenario, academic_challenge AS objective, tutor_instructions AS "tutorInstructions", max_student_turns AS "maxStudentTurns", published, created_at AS "createdAt", updated_at AS "updatedAt"';
 const studentSimulationSelect = 'id, course_id AS "courseId", title, clinical_situation AS scenario, academic_challenge AS objective, published, created_at AS "createdAt", updated_at AS "updatedAt"';
 const qualified = (columns, alias) => `${alias}.${columns.replaceAll(', ', `, ${alias}.`)}`;
 
@@ -108,7 +108,7 @@ mvp.post('/courses/:courseId/simulations', requireUser, requireRole('teacher'), 
   const id = parse(idSchema, req.params.courseId, res); if (!id) return;
   const data = parse(simulationInput, req.body, res); if (!data) return;
   if (!(await ownCourse(id, req.user.id))) return res.status(404).json({ error: 'Curso no encontrado' });
-  const { rows } = await query(`INSERT INTO clinical_cases (course_id, slug, title, subject, difficulty, topic, clinical_situation, academic_challenge, tutor_instructions, rubric_definition, published) VALUES ($1, $2, $3, 'Bioquímica', 'introductorio', $3, $4, $5, $6, '{}'::jsonb, $7) RETURNING ${simulationSelect}`, [id, randomUUID(), data.title, data.scenario, data.objective, data.tutorInstructions, data.published ?? false]);
+  const { rows } = await query(`INSERT INTO clinical_cases (course_id, slug, title, subject, difficulty, topic, clinical_situation, academic_challenge, tutor_instructions, rubric_definition, max_student_turns, published) VALUES ($1, $2, $3, 'Bioquímica', 'introductorio', $3, $4, $5, $6, '{}'::jsonb, $7, $8) RETURNING ${simulationSelect}`, [id, randomUUID(), data.title, data.scenario, data.objective, data.tutorInstructions, data.maxStudentTurns ?? 6, data.published ?? false]);
   res.status(201).json({ simulation: rows[0] });
 }));
 
@@ -122,7 +122,7 @@ mvp.get('/simulations/:simulationId', requireUser, run(async (req, res) => {
 mvp.patch('/simulations/:simulationId', requireUser, requireRole('teacher'), run(async (req, res) => {
   const id = parse(idSchema, req.params.simulationId, res); if (!id) return;
   const data = parse(simulationInput.partial().refine((value) => Object.keys(value).length > 0), req.body, res); if (!data) return;
-  const { rows } = await query(`UPDATE clinical_cases s SET title = COALESCE($3, s.title), topic = COALESCE($3, s.topic), clinical_situation = COALESCE($4, s.clinical_situation), academic_challenge = COALESCE($5, s.academic_challenge), tutor_instructions = COALESCE($6, s.tutor_instructions), published = COALESCE($7, s.published), version = s.version + 1, updated_at = now() FROM courses c WHERE s.id = $1 AND c.id = s.course_id AND c.teacher_id = $2 RETURNING ${qualified(simulationSelect, 's')}`, [id, req.user.id, data.title ?? null, data.scenario ?? null, data.objective ?? null, data.tutorInstructions ?? null, data.published ?? null]);
+  const { rows } = await query(`UPDATE clinical_cases s SET title = COALESCE($3, s.title), topic = COALESCE($3, s.topic), clinical_situation = COALESCE($4, s.clinical_situation), academic_challenge = COALESCE($5, s.academic_challenge), tutor_instructions = COALESCE($6, s.tutor_instructions), max_student_turns = COALESCE($8, s.max_student_turns), published = COALESCE($7, s.published), version = s.version + 1, updated_at = now() FROM courses c WHERE s.id = $1 AND c.id = s.course_id AND c.teacher_id = $2 RETURNING ${qualified(simulationSelect, 's')}`, [id, req.user.id, data.title ?? null, data.scenario ?? null, data.objective ?? null, data.tutorInstructions ?? null, data.published ?? null, data.maxStudentTurns ?? null]);
   return rows[0] ? res.json({ simulation: rows[0] }) : res.status(404).json({ error: 'Simulación no encontrada' });
 }));
 

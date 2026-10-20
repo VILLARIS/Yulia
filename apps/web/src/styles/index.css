@@ -1532,6 +1532,10 @@
 
   .editor-note svg { @apply mt-0.5 shrink-0 text-[#1769aa]; }
 
+  .editor-card-title-row { @apply flex items-center gap-1.5; }
+
+  .editor-duration-control input { max-width: 10rem; }
+
   .editor-actions { @apply flex flex-wrap items-center gap-3; }
 
   .editor-save {
@@ -1572,6 +1576,53 @@
 
   .editor-skeleton-lg { min-height: 22rem; }
   .editor-skeleton-sm { min-height: 9rem; }
+
+  /* Ayuda contextual del editor: botón discreto y popover posicionado por JS
+   * para no salirse de la pantalla en móvil. */
+  .field-help { @apply inline-flex shrink-0; }
+
+  .field-help-btn {
+    @apply grid size-10 place-items-center rounded-full text-[#5c6f82] transition-colors sm:size-8;
+  }
+
+  .field-help-btn:hover,
+  .field-help-btn[aria-expanded='true'] {
+    @apply bg-[#eaf6e4] text-[#2b8537];
+  }
+
+  .field-help-btn:focus-visible {
+    @apply outline-none ring-2 ring-[#173b6c] ring-offset-2;
+  }
+
+  .field-help-pop {
+    position: fixed;
+    z-index: 70;
+    max-height: calc(100vh - 2rem);
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 1px solid #dce8d8;
+    border-radius: 0.875rem;
+    background-color: #ffffff;
+    padding: 0.875rem 1rem;
+    box-shadow: 0 18px 40px rgb(23 59 108 / 0.16);
+    color: #46596d;
+    font-size: 0.8125rem;
+    line-height: 1.55;
+    text-align: left;
+  }
+
+  .field-help-text { @apply m-0; }
+
+  .field-help-example {
+    @apply mt-2.5 rounded-lg border border-[#d7ead1] bg-[#f4faf1] px-3 py-2 text-[#1f6b3a];
+  }
+
+  .field-help-example-label {
+    @apply mb-0.5 block text-[10px] font-bold uppercase tracking-[0.14em] text-[#2b8537];
+  }
+
+  .field-help-avoid { @apply mt-2 text-xs leading-5 text-[#7e90a3]; }
+  .field-help-avoid span { @apply font-semibold text-[#5c6f82]; }
 
   @media (max-width: 639.98px) {
     .editor-hero { padding: 1.9rem 0 1.6rem; }
