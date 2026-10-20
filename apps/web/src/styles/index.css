@@ -1048,6 +1048,249 @@
     .courses-filters { @apply w-full overflow-x-auto; }
   }
 
+  /* Videos -----------------------------------------------------------------
+   * Misma gramática editorial que el catálogo de cursos (ancho, tipografía,
+   * navy, verde y marfil), pero con una lectura más visual y relajada:
+   * miniaturas 16:9, tonos suaves deterministas y un destacado amplio. */
+  .videos-page { background-color: #fbfcf8; }
+
+  .videos-header {
+    background:
+      radial-gradient(circle at 14% -40%, rgb(23 105 170 / 0.10), transparent 42%),
+      radial-gradient(circle at 88% -50%, rgb(103 196 71 / 0.18), transparent 46%),
+      linear-gradient(180deg, #ffffff 0%, #f4faf1 100%);
+  }
+
+  .videos-filter-disabled {
+    @apply cursor-not-allowed opacity-55;
+  }
+
+  .videos-filter-disabled:hover {
+    background-color: transparent;
+    color: #5c6f82;
+  }
+
+  .videos-filter-note {
+    @apply -mt-4 mb-8 text-xs font-medium leading-5 text-[#7e90a3] sm:text-right;
+  }
+
+  /* Miniatura y tonos ----------------------------------------------------- */
+  .video-thumb {
+    @apply relative grid aspect-video place-items-center overflow-hidden;
+    transition: background-color 200ms ease;
+  }
+
+  .video-thumb:focus-visible {
+    @apply outline-none ring-2 ring-[#173b6c] ring-offset-2;
+  }
+
+  .video-tone-green { background-color: #eaf6e4; color: #2b8537; }
+  .video-tone-blue { background-color: #e7f0f8; color: #1769aa; }
+  .video-tone-cream { background-color: #f7f3e4; color: #8a7a3f; }
+  .video-tone-teal { background-color: #e7f3ef; color: #157a6e; }
+
+  .video-thumb-orb {
+    @apply pointer-events-none absolute rounded-full;
+    width: 11rem;
+    height: 11rem;
+    right: -3rem;
+    top: -4rem;
+    background-color: rgb(255 255 255 / 0.55);
+  }
+
+  .video-thumb::after {
+    content: '';
+    @apply pointer-events-none absolute rounded-full;
+    width: 4.5rem;
+    height: 4.5rem;
+    left: -1.4rem;
+    bottom: -1.9rem;
+    border: 1px solid rgb(255 255 255 / 0.8);
+  }
+
+  .video-thumb-art {
+    @apply pointer-events-none absolute bottom-3 right-4 opacity-45;
+  }
+
+  .video-thumb-img {
+    @apply absolute inset-0 size-full object-cover;
+  }
+
+  .video-play {
+    @apply relative z-10 grid size-[3.25rem] place-items-center rounded-full border border-white/80 bg-white;
+    color: inherit;
+    box-shadow: 0 8px 20px rgb(23 59 108 / 0.16);
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .video-thumb:hover .video-play {
+    transform: scale(1.05);
+    box-shadow: 0 10px 24px rgb(23 59 108 / 0.2);
+  }
+
+  .video-duration {
+    @apply absolute bottom-3 right-3 z-10 rounded-md bg-white/95 px-2 py-0.5 text-[11px] font-semibold text-[#173b6c];
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.12);
+  }
+
+  /* Tarjeta --------------------------------------------------------------- */
+  .video-card {
+    @apply relative flex h-full flex-col overflow-hidden rounded-2xl border border-[#dce8d8] bg-white;
+    box-shadow: 0 1px 2px rgb(23 59 108 / 0.04);
+    transition: transform 200ms ease, box-shadow 200ms ease, border-color 200ms ease;
+  }
+
+  .video-card:hover {
+    transform: translateY(-2px);
+    border-color: #bcd4b6;
+    box-shadow: 0 14px 30px rgb(23 59 108 / 0.09);
+  }
+
+  .video-card-body {
+    @apply flex flex-1 flex-col p-5 sm:p-6;
+  }
+
+  .video-card-label {
+    @apply text-[11px] font-bold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .video-card-title {
+    @apply mt-2 text-lg font-bold leading-snug tracking-tight text-[#173b6c] sm:text-xl;
+  }
+
+  .video-card-desc {
+    @apply mt-2 flex-1 text-sm leading-6 text-[#5c6f82];
+  }
+
+  .video-meta {
+    @apply mt-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium text-[#7e90a3];
+  }
+
+  .video-meta > span {
+    @apply inline-flex items-center gap-1.5;
+  }
+
+  .video-cta {
+    @apply mt-4 inline-flex min-h-10 items-center gap-1.5 self-start rounded-xl border border-[#cfe8cf] bg-[#f4faf1] px-3.5 py-2 text-sm font-semibold text-[#1f6b3a] transition-colors;
+  }
+
+  .video-cta:hover {
+    @apply border-[#2b8537] bg-[#eaf6e4] text-[#173b6c];
+  }
+
+  .video-cta svg { transition: transform 180ms ease; }
+
+  .video-cta:hover svg { transform: translateX(2px); }
+
+  .video-cta:focus-visible {
+    @apply outline-none ring-2 ring-[#173b6c] ring-offset-2;
+  }
+
+  /* Destacado ------------------------------------------------------------- */
+  .video-featured {
+    @apply mb-8 grid overflow-hidden rounded-2xl border border-[#dce8d8] bg-white lg:mb-10 lg:grid-cols-[1.05fr_0.95fr];
+    box-shadow: 0 2px 6px rgb(23 59 108 / 0.05);
+  }
+
+  .video-thumb-featured {
+    min-height: 15rem;
+  }
+
+  .video-featured-body {
+    @apply flex flex-col justify-center p-6 sm:p-8 lg:p-10;
+  }
+
+  .video-featured-label {
+    @apply inline-flex items-center gap-2 self-start rounded-full border border-[#cfe8cf] bg-[#eaf6e4] px-3 py-1 text-[11px] font-bold uppercase tracking-[0.16em] text-[#1f6b3a];
+  }
+
+  .video-featured-label::before {
+    content: '';
+    @apply size-1.5 rounded-full bg-[#67c447];
+  }
+
+  .video-featured-title {
+    @apply mt-4 text-2xl font-bold leading-tight tracking-tight text-[#173b6c] sm:text-3xl;
+  }
+
+  .video-featured-desc {
+    @apply mt-3 max-w-xl text-base leading-7 text-[#5c6f82];
+  }
+
+  .video-featured-cta {
+    @apply mt-6 inline-flex min-h-11 items-center gap-2 self-start rounded-lg bg-[#2b8537] px-4 text-sm font-semibold text-white transition-colors;
+  }
+
+  .video-featured-cta:hover { @apply bg-[#237a32]; }
+
+  .video-featured-cta:focus-visible {
+    @apply outline-none ring-2 ring-[#173b6c] ring-offset-2;
+  }
+
+  @media (min-width: 1024px) {
+    .video-thumb-featured {
+      aspect-ratio: auto;
+      height: 100%;
+    }
+  }
+
+  /* Estado vacío ---------------------------------------------------------- */
+  .videos-empty {
+    @apply relative mx-auto mt-8 max-w-3xl overflow-hidden rounded-3xl border border-[#dce8d8] px-6 py-12 text-center sm:px-12 sm:py-16;
+    background:
+      radial-gradient(circle at 50% -20%, rgb(103 196 71 / 0.16), transparent 55%),
+      #f4faf1;
+  }
+
+  .videos-empty-art {
+    @apply relative mx-auto grid size-28 place-items-center sm:size-32;
+  }
+
+  .videos-empty-glow {
+    @apply pointer-events-none absolute inset-0 rounded-full bg-white/70;
+  }
+
+  .videos-empty-ring {
+    @apply pointer-events-none absolute inset-3 rounded-full border border-[#cfe8cf];
+  }
+
+  .videos-empty-play {
+    @apply relative grid size-14 place-items-center rounded-full border border-[#cfe8cf] bg-white text-[#2b8537] sm:size-16;
+    box-shadow: 0 10px 24px rgb(23 59 108 / 0.10);
+  }
+
+  .videos-empty-icon {
+    @apply absolute opacity-70;
+  }
+
+  .videos-empty-icon-a { left: -0.25rem; top: 1.25rem; color: #2b8537; }
+  .videos-empty-icon-b { right: -0.5rem; top: 0.5rem; color: #1769aa; }
+  .videos-empty-icon-c { right: 1.25rem; bottom: -0.25rem; color: #8a7a3f; }
+
+  .videos-empty-eyebrow {
+    @apply mt-6 text-[11px] font-bold uppercase tracking-[0.18em] text-[#2b8537];
+  }
+
+  .videos-empty-title {
+    @apply mx-auto mt-3 max-w-xl text-xl font-bold leading-snug tracking-tight text-[#173b6c] sm:text-2xl;
+  }
+
+  .videos-empty-text {
+    @apply mx-auto mt-3 max-w-xl text-sm leading-6 text-[#5c6f82] sm:text-base sm:leading-7;
+  }
+
+  .videos-empty-compact {
+    @apply mt-0 max-w-xl px-6 py-10 sm:px-10 sm:py-12;
+  }
+
+  .videos-empty-search {
+    @apply mx-auto grid size-12 place-items-center rounded-full border border-[#cfe8cf] bg-white text-[#2b8537];
+  }
+
+  .videos-empty-action {
+    @apply mt-5 flex justify-center;
+  }
+
   /* Panel docente ----------------------------------------------------------
    * Evolución del catálogo conservando la misma identidad (navy #173b6c,
    * verde #2b8537, marfil #fbfcf8), pero con una voz más administrativa: una
