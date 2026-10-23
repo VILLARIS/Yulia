@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import {
-  Activity, Apple, ArrowRight, BookOpen, Brain, ChevronRight, Clock, FlaskConical,
+  Activity, Apple, ArrowRight, BookOpen, Brain, CalendarDays, ChevronRight, FlaskConical,
   HeartPulse, Layers, Lock, Microscope, PencilLine, Plus, Salad, Sparkles, Trash2, UserRound, Users,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -125,6 +125,7 @@ export function CoursePage() {
   const [course, setCourse] = useState(null);
   const [simulations, setSimulations] = useState([]);
   const [sessions, setSessions] = useState({});
+  const [coverFailed, setCoverFailed] = useState(false);
   const [loading, setLoading] = useState(true);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -134,6 +135,7 @@ export function CoursePage() {
 
   useEffect(() => {
     let active = true;
+    setCoverFailed(false);
     api(`/courses/${courseId}`).then(async ({ course: data }) => {
       if (!active) return;
       setCourse(data);
@@ -225,18 +227,29 @@ export function CoursePage() {
   );
 
   const isEnrolled = Boolean(course.enrolled);
-  const hasActiveSession = simulations.some((item) => sessions[item.id]);
   const activeSimulation = simulations.find((item) => sessions[item.id]) ?? null;
+  const teacherDisplayName = course.teacherName || (teacher ? user?.name : '');
   const rootPath = teacher ? '/docente' : '/cursos';
   const rootLabel = teacher ? 'Mis cursos' : 'Cursos';
   const updatedAt = formatUpdatedAt(course.updatedAt);
+  const statusLabel = teacher
+    ? (course.published ? 'Curso publicado' : 'Curso no publicado')
+    : isEnrolled ? 'Estás inscrito' : course.published ? 'Disponible' : 'No disponible';
+  const statusTone = teacher
+    ? (course.published ? 'success' : 'warning')
+    : isEnrolled ? 'success' : course.published ? 'info' : 'neutral';
+  const statusDescription = teacher
+    ? (course.published ? 'El curso está visible para tus estudiantes.' : 'Publica el curso cuando esté listo.')
+    : isEnrolled
+      ? 'Puedes acceder a las simulaciones disponibles.'
+      : 'Inscríbete para acceder a las simulaciones publicadas.';
 
   const summary = [];
   if (teacher || isEnrolled) {
     summary.push({ icon: Layers, tone: 'course-summary-icon-blue', value: simulations.length, label: simulations.length === 1 ? 'Simulación' : 'Simulaciones' });
   }
-  if (course.teacherName) {
-    summary.push({ icon: Users, tone: 'course-summary-icon-green', value: course.teacherName, label: 'Docente' });
+  if (teacherDisplayName) {
+    summary.push({ icon: Users, tone: 'course-summary-icon-green', value: teacherDisplayName, label: 'Docente' });
   }
   summary.push({
     icon: Activity,
@@ -244,28 +257,36 @@ export function CoursePage() {
     value: teacher ? (course.published ? 'Publicado' : 'Borrador') : isEnrolled ? 'Inscrito' : course.published ? 'Disponible' : 'No disponible',
     label: 'Estado',
   });
-  if (updatedAt) summary.push({ icon: Clock, tone: 'course-summary-icon-blue', value: updatedAt, label: 'Actualizado' });
+  if (updatedAt) summary.push({ icon: CalendarDays, tone: 'course-summary-icon-blue', value: updatedAt, label: 'Actualizado' });
 
   const nextStep = teacher
     ? {
       text: simulations.length === 0 ? 'Crea la primera simulación de este curso.' : 'Añade o edita simulaciones cuando quieras.',
-      action: <Button to={`/docente/cursos/${course.id}/simulaciones/nueva`} size="sm" icon={Plus} className="course-cta-solid">Crear simulación</Button>,
+      action: null,
     }
-    : !isEnrolled
-      ? { text: 'Inscríbete para acceder a las simulaciones publicadas.', action: null }
-      : activeSimulation
-        ? {
-          text: `Tienes "${activeSimulation.title}" en curso.`,
-          action: <Button to={`/estudiante/simulaciones/${activeSimulation.id}`} size="sm" icon={ArrowRight} iconPosition="end" className="course-cta-solid">Continuar simulación</Button>,
-        }
-        : simulations.length === 0
-          ? { text: 'La docente todavía no ha publicado simulaciones.', action: null }
-          : { text: 'Elige una simulación y empieza a practicar.', action: null };
+    : !user
+      ? { text: 'Crea una cuenta e inscríbete para acceder a las simulaciones publicadas.', action: null }
+      : !isEnrolled
+        ? { text: 'Inscríbete para acceder a las simulaciones publicadas.', action: null }
+        : activeSimulation
+          ? {
+            text: `Tienes "${activeSimulation.title}" en curso.`,
+            action: <Button to={`/estudiante/simulaciones/${activeSimulation.id}`} size="sm" icon={ArrowRight} iconPosition="end" className="course-cta-solid">Continuar simulación</Button>,
+          }
+          : simulations.length === 0
+            ? { text: 'La docente todavía no ha publicado simulaciones.', action: null }
+            : { text: 'Elige una simulación y empieza a practicar.', action: null };
 
   return (
     <div className="course-page">
       <header className="course-cover">
-        <div className="course-container">
+        <div className="course-cover-decor" aria-hidden="true">
+          <span className="course-cover-blob course-cover-blob-green" />
+          <span className="course-cover-blob course-cover-blob-blue" />
+          <span className="course-cover-leaf course-cover-leaf-a" />
+          <span className="course-cover-leaf course-cover-leaf-b" />
+        </div>
+        <div className="course-container course-cover-content">
           <nav aria-label="Ruta de navegación" className="course-breadcrumb">
             <ol>
               <li>
@@ -283,18 +304,14 @@ export function CoursePage() {
               <p className="course-cover-desc">{course.description || 'Sin descripción.'}</p>
 
               <div className="course-cover-meta">
-                {course.teacherName ? (
-                  <span className="course-cover-teacher"><UserRound size={15} aria-hidden="true" />Docente: {course.teacherName}</span>
+                {teacherDisplayName ? (
+                  <span className="course-cover-teacher"><UserRound size={15} aria-hidden="true" />Docente: {teacherDisplayName}</span>
                 ) : teacher ? (
                   <span className="course-cover-teacher"><UserRound size={15} aria-hidden="true" />Tu curso</span>
                 ) : null}
-                {teacher ? (
-                  <StatusBadge variant={course.published ? 'success' : 'warning'} dot>
-                    {course.published ? 'Curso publicado' : 'Curso no publicado'}
-                  </StatusBadge>
-                ) : isEnrolled ? (
-                  <StatusBadge variant="success" dot>Inscrito</StatusBadge>
-                ) : null}
+                <StatusBadge variant={statusTone} dot>
+                  {teacher ? statusLabel : isEnrolled ? 'Inscrito' : statusLabel}
+                </StatusBadge>
               </div>
 
               <div className="course-cover-actions">
@@ -310,20 +327,38 @@ export function CoursePage() {
                   <Button to="/registro" icon={ArrowRight} iconPosition="end" className="course-cta-solid">Crear cuenta para acceder</Button>
                 ) : isEnrolled ? (
                   <>
-                    <Button to={`/estudiante/cursos/${course.id}`} icon={ArrowRight} iconPosition="end" className="course-cta-solid">Ver simulaciones</Button>
-                    <a className="course-cta-text course-cover-cta-text" href="#simulaciones">
+                    <Button to={`/estudiante/cursos/${course.id}#simulaciones`} icon={ArrowRight} iconPosition="end" className="course-cta-solid">Ver simulaciones</Button>
+                    <a className="course-cta-text course-cover-cta-text" href="#curso-sobre">
                       Ver el contenido<ArrowRight size={15} aria-hidden="true" className="course-cta-arrow" />
                     </a>
                   </>
                 ) : (
-                  <Button onClick={enroll} disabled={busy} icon={ArrowRight} iconPosition="end" className="course-cta-solid">
-                    {busy ? 'Inscribiendo…' : 'Inscribirme'}
-                  </Button>
+                  <>
+                    <Button onClick={enroll} disabled={busy} icon={ArrowRight} iconPosition="end" className="course-cta-solid">
+                      {busy ? 'Inscribiendo…' : 'Inscribirme'}
+                    </Button>
+                    <a className="course-cta-text course-cover-cta-text" href="#curso-sobre">
+                      Ver el contenido<ArrowRight size={15} aria-hidden="true" className="course-cta-arrow" />
+                    </a>
+                  </>
                 )}
               </div>
             </div>
 
-            <CourseCoverVisual />
+            <div className="course-cover-media">
+              {course.coverImageUrl && !coverFailed ? (
+                <div className="course-cover-image">
+                  <img
+                    src={course.coverImageUrl}
+                    alt={`Portada de ${course.title}`}
+                    decoding="async"
+                    onError={() => setCoverFailed(true)}
+                  />
+                </div>
+              ) : (
+                <CourseCoverVisual />
+              )}
+            </div>
           </div>
         </div>
       </header>
@@ -337,7 +372,10 @@ export function CoursePage() {
           <div className="course-layout">
             <main className="course-main">
               <section className="course-about" aria-labelledby="curso-sobre">
-                <h2 id="curso-sobre" className="course-about-title">Sobre este curso</h2>
+                <div className="course-about-head">
+                  <span className="course-about-icon" aria-hidden="true"><BookOpen size={21} strokeWidth={1.8} /></span>
+                  <h2 id="curso-sobre" className="course-about-title">Sobre este curso</h2>
+                </div>
                 <p className="course-about-text">{course.description || 'Este curso todavía no tiene descripción.'}</p>
               </section>
 
@@ -385,45 +423,32 @@ export function CoursePage() {
             </main>
 
             <aside className="course-side" aria-label="Panel del curso">
+              <div className="course-side-head">
+                <span className="course-side-head-icon" aria-hidden="true"><BookOpen size={18} strokeWidth={1.8} /></span>
+                <div className="min-w-0">
+                  <p className="course-side-kicker">Resumen</p>
+                  <h2 className="course-side-title">Detalles del curso</h2>
+                </div>
+              </div>
+
               <div className="course-side-block">
                 <p className="course-side-label">Estado</p>
-                <p className="course-side-value">
-                  {teacher
-                    ? (course.published ? 'Curso publicado' : 'Curso no publicado')
-                    : isEnrolled ? 'Estás inscrito' : 'Sin inscribir'}
-                </p>
+                <div className="course-side-status">
+                  <span className={`course-side-status-dot course-side-status-${statusTone}`} aria-hidden="true" />
+                  <p className="course-side-value">{statusLabel}</p>
+                </div>
+                <p className="course-side-subtext">{statusDescription}</p>
               </div>
 
               <div className="course-side-block">
                 <p className="course-side-label">Docente</p>
-                <p className="course-side-value">
-                  <UserRound size={15} aria-hidden="true" />
-                  {course.teacherName || (teacher ? 'Tú' : 'Sin asignar')}
-                </p>
-              </div>
-
-              <div className="course-side-block">
-                {teacher ? (
-                  <div className="course-side-actions">
-                    <Button to={`/docente/cursos/${course.id}/editar`} variant="secondary" icon={PencilLine} className="course-cta-outline w-full">Editar curso</Button>
-                    <Button to={`/docente/cursos/${course.id}/simulaciones/nueva`} icon={Plus} className="course-cta-solid w-full">Crear simulación</Button>
-                    <button type="button" className="course-cta-delete w-full" onClick={() => openDelete({ type: 'course', title: course.title })} disabled={busy}>
-                      <Trash2 size={15} aria-hidden="true" /> Eliminar curso
-                    </button>
+                <div className="course-side-person">
+                  <span className="course-side-person-icon" aria-hidden="true"><UserRound size={17} strokeWidth={1.8} /></span>
+                  <div className="min-w-0">
+                    <p className="course-side-value">{teacherDisplayName || (teacher ? 'Tú' : 'Sin asignar')}</p>
+                    <p className="course-side-subtext">Docente del curso</p>
                   </div>
-                ) : !user ? (
-                  <Button to="/registro" icon={ArrowRight} iconPosition="end" className="course-cta-solid w-full">Crear cuenta para acceder</Button>
-                ) : isEnrolled ? (
-                  hasActiveSession && activeSimulation ? (
-                    <Button to={`/estudiante/simulaciones/${activeSimulation.id}`} icon={ArrowRight} iconPosition="end" className="course-cta-solid w-full">Continuar simulación</Button>
-                  ) : (
-                    <Button onClick={enroll} disabled variant="secondary" className="course-cta-outline w-full">Inscrito</Button>
-                  )
-                ) : (
-                  <Button onClick={enroll} disabled={busy} icon={ArrowRight} iconPosition="end" className="course-cta-solid w-full">
-                    {busy ? 'Inscribiendo…' : 'Inscribirme'}
-                  </Button>
-                )}
+                </div>
               </div>
 
               <div className="course-side-block">

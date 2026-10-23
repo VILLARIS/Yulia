@@ -1,17 +1,16 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+import { Link } from 'react-router-dom';
 import {
-  ArrowRight, Apple, Brain, CalendarDays, Clock, FlaskConical, HeartPulse,
-  Microscope, Play, Salad, Search, Tag,
+  Apple, ArrowRight, Brain, CalendarDays, FlaskConical, HeartPulse, Microscope, Pencil,
+  Play, Plus, Salad, Search,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
+import { Message } from '../components/ui/Message';
+import { StatusBadge } from '../components/ui/StatusBadge';
+import { api } from './api';
+import { useAuth } from './AuthContext';
+import { youtubeThumbnail } from './youtube';
 
-/* Fuente única del catálogo. Se deja vacía a propósito: todavía no existe
- * contenido real ni categorías en los datos, así que no se inventan títulos,
- * duraciones, autores ni métricas. Al conectar videos, basta con llenar esta
- * lista respetando los campos que se renderizan más abajo. */
-const VIDEOS = [];
-
-/* Tono e ilustración deterministas por posición, igual que en CourseCard. */
 const TONE_CLASSES = ['video-tone-green', 'video-tone-blue', 'video-tone-cream', 'video-tone-teal'];
 const ART_ICONS = [FlaskConical, Apple, Microscope, Brain, Salad, HeartPulse];
 
@@ -22,24 +21,44 @@ const FILTERS = [
   { key: 'bioquimica', label: 'Bioquímica' },
 ];
 
+const dateFormatter = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
+
+function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : dateFormatter.format(date);
+}
+
 function VideoMeta({ video, className }) {
-  const items = [];
-  if (video.duration) items.push(<span key="duration"><Clock size={13} aria-hidden="true" />{video.duration}</span>);
-  if (video.topic) items.push(<span key="topic"><Tag size={13} aria-hidden="true" />{video.topic}</span>);
-  if (video.date) items.push(<span key="date"><CalendarDays size={13} aria-hidden="true" />{video.date}</span>);
-  if (!items.length) return null;
-  return <p className={className}>{items}</p>;
+  if (!video.date) return null;
+  return (
+    <p className={className}>
+      <span><CalendarDays size={13} aria-hidden="true" />{video.date}</span>
+    </p>
+  );
 }
 
 function VideoThumb({ video, index, featured = false }) {
+  const [failed, setFailed] = useState(false);
   const Icon = ART_ICONS[index % ART_ICONS.length];
   const tone = TONE_CLASSES[index % TONE_CLASSES.length];
   const className = `video-thumb ${tone} ${featured ? 'video-thumb-featured' : ''}`;
+  const showImage = Boolean(video.thumbnail) && !failed;
+
+  useEffect(() => {
+    setFailed(false);
+  }, [video.thumbnail]);
 
   const content = (
     <>
-      {video.thumbnail ? (
-        <img src={video.thumbnail} alt="" loading="lazy" className="video-thumb-img" />
+      {showImage ? (
+        <img
+          src={video.thumbnail}
+          alt=""
+          loading={featured ? 'eager' : 'lazy'}
+          className="video-thumb-img"
+          onError={() => setFailed(true)}
+        />
       ) : (
         <>
           <span className="video-thumb-orb" aria-hidden="true" />
@@ -49,58 +68,73 @@ function VideoThumb({ video, index, featured = false }) {
       <span className="video-play" aria-hidden="true">
         <Play size={featured ? 22 : 18} fill="currentColor" />
       </span>
-      {video.duration ? <span className="video-duration">{video.duration}</span> : null}
     </>
   );
 
-  if (!video.url) return <div className={className}>{content}</div>;
+  if (!video.href) return <div className={className}>{content}</div>;
 
   return (
-    <a
-      className={className}
-      href={video.url}
-      target="_blank"
-      rel="noreferrer"
-      aria-label={`Ver video: ${video.title}`}
-    >
+    <Link className={className} to={video.href} aria-label={`Ver video: ${video.title}`}>
       {content}
-    </a>
+    </Link>
   );
 }
 
-function VideoCard({ video, index }) {
+function VideoCard({ video, index, isTeacher }) {
   return (
     <article className="video-card">
       <VideoThumb video={video} index={index} />
       <div className="video-card-body">
-        <span className="video-card-label">Video</span>
+        <div className="video-card-top">
+          {isTeacher ? (
+            <StatusBadge variant={video.published ? 'success' : 'warning'} dot>
+              {video.published ? 'Publicado' : 'Borrador'}
+            </StatusBadge>
+          ) : (
+            <span className="video-card-label">Video</span>
+          )}
+          {isTeacher ? (
+            <Link to={`/docente/videos/${video.id}/editar`} className="video-edit-link">
+              <Pencil size={13} aria-hidden="true" /> Editar
+            </Link>
+          ) : null}
+        </div>
         <h2 className="video-card-title line-clamp-2">{video.title}</h2>
         {video.description ? <p className="video-card-desc line-clamp-3">{video.description}</p> : null}
         <VideoMeta video={video} className="video-meta" />
-        {video.url ? (
-          <a className="video-cta" href={video.url} target="_blank" rel="noreferrer">
-            Ver video <ArrowRight size={15} aria-hidden="true" />
-          </a>
-        ) : null}
+        <Link className="video-cta" to={video.href}>
+          Ver video <ArrowRight size={15} aria-hidden="true" />
+        </Link>
       </div>
     </article>
   );
 }
 
-function FeaturedVideo({ video }) {
+function FeaturedVideo({ video, isTeacher }) {
   return (
     <article className="video-featured">
       <VideoThumb video={video} index={0} featured />
       <div className="video-featured-body">
-        <span className="video-featured-label">Destacado</span>
+        <div className="video-featured-top">
+          {isTeacher ? (
+            <StatusBadge variant={video.published ? 'success' : 'warning'} dot>
+              {video.published ? 'Publicado' : 'Borrador'}
+            </StatusBadge>
+          ) : (
+            <span className="video-featured-label">Destacado</span>
+          )}
+          {isTeacher ? (
+            <Link to={`/docente/videos/${video.id}/editar`} className="video-edit-link">
+              <Pencil size={13} aria-hidden="true" /> Editar
+            </Link>
+          ) : null}
+        </div>
         <h2 className="video-featured-title">{video.title}</h2>
         {video.description ? <p className="video-featured-desc">{video.description}</p> : null}
         <VideoMeta video={video} className="video-meta" />
-        {video.url ? (
-          <a className="video-featured-cta" href={video.url} target="_blank" rel="noreferrer">
-            <Play size={16} aria-hidden="true" /> Ver video
-          </a>
-        ) : null}
+        <Link className="video-featured-cta" to={video.href}>
+          <Play size={16} aria-hidden="true" /> Ver video
+        </Link>
       </div>
     </article>
   );
@@ -121,34 +155,70 @@ function EmptyArt() {
   );
 }
 
-function VideosEmpty() {
+function VideosEmpty({ teacher }) {
   return (
     <div className="videos-empty">
       <EmptyArt />
-      <p className="videos-empty-eyebrow">Contenido en preparación</p>
-      <h2 className="videos-empty-title">Próximamente encontrarás videos educativos aquí</h2>
+      <p className="videos-empty-eyebrow">{teacher ? 'Tu catálogo' : 'Contenido en preparación'}</p>
+      <h2 className="videos-empty-title">
+        {teacher ? 'No has añadido videos todavía' : 'Próximamente encontrarás videos educativos aquí'}
+      </h2>
       <p className="videos-empty-text">
-        Estamos preparando contenido breve para reforzar temas de bromatología, nutrición y bioquímica.
+        {teacher
+          ? 'Comparte tu primer video de YouTube y publícalo cuando esté listo.'
+          : 'Estamos preparando contenido breve para reforzar temas de bromatología, nutrición y bioquímica.'}
       </p>
+      {teacher ? (
+        <div className="videos-empty-action">
+          <Button to="/docente/videos/nuevo" icon={Plus}>Añadir primer video</Button>
+        </div>
+      ) : null}
     </div>
   );
 }
 
 export function VideosPage() {
+  const { user, loading: authLoading } = useAuth();
+  const teacher = user?.role === 'teacher';
+  const [videos, setVideos] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
   const [filter, setFilter] = useState('all');
 
-  const hasVideos = VIDEOS.length > 0;
-  const hasCategories = VIDEOS.some((video) => Boolean(video.category));
+  useEffect(() => {
+    if (authLoading) return undefined;
+    let active = true;
+    setLoading(true);
+    setError('');
+    api('/videos').then(({ videos: data }) => {
+      if (active) setVideos(data);
+    }).catch((cause) => {
+      if (active) setError(cause.message);
+    }).finally(() => {
+      if (active) setLoading(false);
+    });
+    return () => { active = false; };
+  }, [authLoading, user?.id]);
+
+  const items = useMemo(() => videos.map((video) => ({
+    ...video,
+    href: `/videos/${video.id}`,
+    thumbnail: youtubeThumbnail(video.youtubeVideoId),
+    date: formatDate(video.createdAt),
+  })), [videos]);
+
+  const hasVideos = items.length > 0;
+  const hasCategories = items.some((video) => Boolean(video.category));
   const term = query.trim().toLowerCase();
 
-  const visible = useMemo(() => VIDEOS.filter((video) => {
+  const visible = useMemo(() => items.filter((video) => {
     const matchesTerm = !term
       || video.title.toLowerCase().includes(term)
       || (video.description ?? '').toLowerCase().includes(term);
     const matchesFilter = filter === 'all' || video.category === filter;
     return matchesTerm && matchesFilter;
-  }), [term, filter]);
+  }), [items, term, filter]);
 
   const showFeatured = hasVideos && filter === 'all' && !term;
   const featured = showFeatured ? visible[0] : null;
@@ -159,14 +229,23 @@ export function VideosPage() {
     <div className="videos-page">
       <section className="courses-header videos-header">
         <div className="site-container">
-          <p className="courses-eyebrow">Aprende a tu ritmo</p>
-          <h1 className="courses-title">Videos educativos</h1>
-          <p className="courses-subtitle">
-            Contenido breve sobre bromatología, nutrición y bioquímica para reforzar lo aprendido de forma clara y práctica.
-          </p>
-          {hasVideos ? (
-            <p className="courses-count">{VIDEOS.length} {VIDEOS.length === 1 ? 'video' : 'videos'}</p>
-          ) : null}
+          <div className="videos-header-row">
+            <div className="videos-header-copy">
+              <p className="courses-eyebrow">Aprende a tu ritmo</p>
+              <h1 className="courses-title">Videos educativos</h1>
+              <p className="courses-subtitle">
+                Contenido breve sobre bromatología, nutrición y bioquímica para reforzar lo aprendido de forma clara y práctica.
+              </p>
+              {!loading && !error && hasVideos ? (
+                <p className="courses-count">{items.length} {items.length === 1 ? 'video' : 'videos'}</p>
+              ) : null}
+            </div>
+            {teacher ? (
+              <Button to="/docente/videos/nuevo" icon={Plus} className="videos-add">
+                Añadir video
+              </Button>
+            ) : null}
+          </div>
         </div>
       </section>
 
@@ -210,9 +289,20 @@ export function VideosPage() {
             </p>
           ) : null}
 
-          {!hasVideos ? <VideosEmpty /> : null}
+          {loading ? (
+            <div className="courses-grid" aria-hidden="true">
+              <p className="sr-only" role="status">Cargando videos…</p>
+              {[0, 1, 2].map((index) => (
+                <div key={index} className="video-card course-card-skeleton" />
+              ))}
+            </div>
+          ) : null}
 
-          {hasVideos && visible.length === 0 ? (
+          {error ? <Message tone="error">{error}</Message> : null}
+
+          {!loading && !error && !hasVideos ? <VideosEmpty teacher={teacher} /> : null}
+
+          {!loading && !error && hasVideos && visible.length === 0 ? (
             <div className="videos-empty videos-empty-compact">
               <span className="videos-empty-search" aria-hidden="true"><Search size={22} /></span>
               <h2 className="videos-empty-title">No encontramos videos</h2>
@@ -223,14 +313,14 @@ export function VideosPage() {
             </div>
           ) : null}
 
-          {hasVideos && visible.length > 0 ? (
+          {!loading && !error && visible.length > 0 ? (
             <>
-              {featured ? <FeaturedVideo video={featured} /> : null}
+              {featured ? <FeaturedVideo video={featured} isTeacher={teacher} /> : null}
               {gridVideos.length > 0 ? (
                 <ul className="courses-grid">
                   {gridVideos.map((video, index) => (
-                    <li key={video.id ?? video.title}>
-                      <VideoCard video={video} index={featured ? index + 1 : index} />
+                    <li key={video.id}>
+                      <VideoCard video={video} index={featured ? index + 1 : index} isTeacher={teacher} />
                     </li>
                   ))}
                 </ul>

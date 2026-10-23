@@ -2,7 +2,7 @@ import cors from 'cors';
 import express from 'express';
 import helmet from 'helmet';
 import { env } from './config/env.js';
-import { mvp } from './mvp.js';
+import { createMvpRouter } from './mvp.js';
 import { createChatRouter } from './chat.js';
 
 export function createApp(options = {}) {
@@ -20,7 +20,7 @@ export function createApp(options = {}) {
     });
   });
 
-  app.use('/api', mvp);
+  app.use('/api', createMvpRouter(options));
   app.use('/api', createChatRouter(options));
 
   app.use('/api', (_request, response) => {

@@ -6,6 +6,7 @@ import { EmptyState } from '../components/ui/EmptyState';
 import { Message } from '../components/ui/Message';
 import { Modal } from '../components/ui/Modal';
 import { StatusBadge } from '../components/ui/StatusBadge';
+import backgroundCourses from '../assets/yulia/courses/backgroundCourses.png';
 import { api, deleteCourse } from './api';
 import { useAuth } from './AuthContext';
 
@@ -35,6 +36,8 @@ function CourseCard({ course, index, isAuthenticated, enrolled }) {
   const Icon = VISUAL_ICONS[index % VISUAL_ICONS.length];
   const tone = VISUAL_TONES[index % VISUAL_TONES.length];
   const detailPath = `/estudiante/cursos/${course.id}`;
+  const [coverFailed, setCoverFailed] = useState(false);
+  const showCover = Boolean(course.coverImageUrl) && !coverFailed;
   const action = !isAuthenticated
     ? { to: '/acceso', label: 'Ver curso', solid: false }
     : enrolled
@@ -43,10 +46,23 @@ function CourseCard({ course, index, isAuthenticated, enrolled }) {
 
   return (
     <article className={`course-card ${enrolled ? 'course-card-enrolled' : ''}`}>
-      <div className={`course-card-visual ${tone}`} aria-hidden="true">
-        <span className="course-card-orb" />
-        <Icon size={44} strokeWidth={1.5} className="course-card-icon" />
-      </div>
+      {showCover ? (
+        <div className="course-card-cover">
+          <img
+            src={course.coverImageUrl}
+            alt=""
+            loading="lazy"
+            decoding="async"
+            className="course-card-cover-img"
+            onError={() => setCoverFailed(true)}
+          />
+        </div>
+      ) : (
+        <div className={`course-card-visual ${tone}`} aria-hidden="true">
+          <span className="course-card-orb" />
+          <Icon size={44} strokeWidth={1.5} className="course-card-icon" />
+        </div>
+      )}
       <div className="course-card-body">
         <div className="course-card-top">
           <span className="course-card-label">Curso</span>
@@ -168,7 +184,7 @@ export function CoursesPage() {
 
     return (
       <div className="courses-page teacher-page">
-        <section className="teacher-hero">
+        <section className="teacher-hero" style={{ '--teacher-hero-background': `url("${backgroundCourses}")` }}>
           <div className="site-container">
             <p className="teacher-eyebrow">Panel docente</p>
             <div className="teacher-hero-row">

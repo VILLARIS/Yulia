@@ -17,10 +17,31 @@ export async function api(path, options = {}) {
   return body;
 }
 
+export async function uploadCourseCover(courseId, file) {
+  const { upload } = await api(`/courses/${courseId}/cover/upload-url`, {
+    method: 'POST',
+    body: JSON.stringify({ contentType: file.type, size: file.size }),
+  });
+  const response = await fetch(upload.url, {
+    method: upload.method,
+    headers: upload.headers,
+    body: file,
+  });
+  if (!response.ok) throw new Error('No se pudo subir la portada. Inténtalo de nuevo.');
+  return api(`/courses/${courseId}/cover/confirm`, {
+    method: 'POST',
+    body: JSON.stringify({ path: upload.path }),
+  });
+}
+
 export function deleteCourse(courseId) {
   return api(`/courses/${courseId}`, { method: 'DELETE' });
 }
 
 export function deleteSimulation(simulationId) {
   return api(`/simulations/${simulationId}`, { method: 'DELETE' });
+}
+
+export function deleteVideo(videoId) {
+  return api(`/videos/${videoId}`, { method: 'DELETE' });
 }

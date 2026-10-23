@@ -11,6 +11,17 @@ const envSchema = z.object({
   DATABASE_SSL: optionalBoolean,
   JWT_SECRET: z.string().min(32).default('development-only-change-this-secret-before-deploying'),
   GEMINI_MODEL: z.string().min(1).default('gemini-3.5-flash-lite'),
+  SUPABASE_URL: z.string().url().optional(),
+  SUPABASE_SERVICE_ROLE_KEY: z.string().min(1).optional(),
+  SUPABASE_STORAGE_BUCKET: z.string().regex(/^[a-z0-9][a-z0-9-]{1,61}[a-z0-9]$/).default('course-covers'),
+}).superRefine((value, context) => {
+  if (Boolean(value.SUPABASE_URL) !== Boolean(value.SUPABASE_SERVICE_ROLE_KEY)) {
+    context.addIssue({
+      code: z.ZodIssueCode.custom,
+      message: 'SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY deben configurarse juntas',
+      path: ['SUPABASE_URL'],
+    });
+  }
 });
 
 const parsed = envSchema.safeParse(process.env);

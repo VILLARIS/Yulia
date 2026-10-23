@@ -11,12 +11,21 @@ Aplicación React/Vite y API Express con PostgreSQL. Docentes crean cursos y sim
 ## Arranque local
 
 1. Crea una base PostgreSQL vacía, por ejemplo `bioquimica_nutricional`.
-2. Copia `.env.example` a `apps/api/.env` y configura `DATABASE_URL` y un `JWT_SECRET` aleatorio de al menos 32 caracteres. La API carga ese archivo desde `apps/api`.
+2. Copia `.env.example` a `apps/api/.env` y configura `DATABASE_URL` y un `JWT_SECRET` aleatorio de al menos 32 caracteres. La API carga ese archivo desde `apps/api`. Para las portadas de curso añade también `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` y, si usas otro nombre, `SUPABASE_STORAGE_BUCKET`.
 3. Ejecuta `pnpm install`.
-4. Ejecuta `pnpm db:migrate`. El script aplica `001`, `002` y `003` una sola vez y conserva los datos en ejecuciones posteriores.
+4. Ejecuta `pnpm db:migrate`. El script aplica las migraciones pendientes una sola vez y conserva los datos en ejecuciones posteriores.
 5. Ejecuta `pnpm dev` y abre `http://localhost:5173`.
 
 La web usa `http://localhost:3001/api` por defecto. Para otra URL, crea `apps/web/.env` con `VITE_API_URL` antes de iniciar Vite. Permite cookies y configura `WEB_ORIGIN` con el origen exacto de la web.
+
+## Portadas de curso
+
+Las portadas se suben directamente desde el navegador a Supabase Storage con una URL firmada. La API solo guarda la ruta del archivo y usa la service role key en el servidor; esa clave nunca llega al navegador.
+
+1. Crea un bucket público llamado `course-covers`.
+2. Limita el bucket a 2 MB y a los tipos `image/jpeg`, `image/png` e `image/webp`.
+3. No añadas políticas de escritura pública: las subidas se autorizan con URLs firmadas generadas por el backend.
+4. Configura `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` en `apps/api/.env` y reinicia la API.
 
 ## Recorrido de prueba
 

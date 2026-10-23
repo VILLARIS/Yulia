@@ -1,17 +1,26 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Eye, FileText, Lightbulb, Save, Trash2 } from 'lucide-react';
+import { ArrowLeft, Eye, FileText, ImagePlus, Lightbulb, Save, Trash2 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
 import { TextAreaField, TextField } from '../components/ui/Field';
 import { Message } from '../components/ui/Message';
 import { Modal } from '../components/ui/Modal';
 import { StatusBadge } from '../components/ui/StatusBadge';
-import { api, deleteCourse } from './api';
+import { api, deleteCourse, uploadCourseCover } from './api';
+
+const COVER_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_COVER_BYTES = 2 * 1024 * 1024;
 
 export function CourseEditorPage() {
   const { courseId } = useParams();
   const navigate = useNavigate();
-  const [values, setValues] = useState({ title: '', description: '', published: true });
+  const [values, setValues] = useState({ title: '', description: '', published: false });
+  const [wasPublished, setWasPublished] = useState(false);
+  const [currentCoverUrl, setCurrentCoverUrl] = useState('');
+  const [coverFile, setCoverFile] = useState(null);
+  const [coverPreview, setCoverPreview] = useState('');
+  const [coverError, setCoverError] = useState('');
+  const [draftId, setDraftId] = useState('');
   const [loading, setLoading] = useState(Boolean(courseId));
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
@@ -21,15 +30,70 @@ export function CourseEditorPage() {
   useEffect(() => {
     if (!courseId) return;
     let active = true;
-    api(`/courses/${courseId}`).then(({ course }) => { if (active) setValues({ title: course.title, description: course.description ?? '', published: course.published }); })
+    api(`/courses/${courseId}`).then(({ course }) => {
+      if (!active) return;
+      setValues({ title: course.title, description: course.description ?? '', published: course.published });
+      setWasPublished(course.published);
+      setCurrentCoverUrl(course.coverImageUrl ?? '');
+    })
       .catch((cause) => { if (active) setError(cause.message); })
       .finally(() => { if (active) setLoading(false); });
     return () => { active = false; };
   }, [courseId]);
+  useEffect(() => () => { if (coverPreview) URL.revokeObjectURL(coverPreview); }, [coverPreview]);
+
+  const hasCover = Boolean(coverFile || currentCoverUrl);
+  const needsCover = values.published && !wasPublished && !hasCover;
+  const preview = coverPreview || currentCoverUrl;
+
+  const chooseCover = (event) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+    if (!file) return;
+    setCoverError('');
+    if (!COVER_TYPES.includes(file.type)) {
+      setCoverFile(null);
+      setCoverPreview('');
+      setCoverError('La portada debe ser un archivo JPG, PNG o WebP.');
+      return;
+    }
+    if (file.size > MAX_COVER_BYTES) {
+      setCoverFile(null);
+      setCoverPreview('');
+      setCoverError('La portada debe pesar como máximo 2 MB.');
+      return;
+    }
+    setCoverFile(file);
+    setCoverPreview(URL.createObjectURL(file));
+  };
+
   const submit = async (event) => {
-    event.preventDefault(); setBusy(true); setError('');
+    event.preventDefault();
+    setError('');
+    setCoverError('');
+    if (needsCover) {
+      setError('Añade una portada antes de publicar el curso.');
+      return;
+    }
+    setBusy(true);
     try {
-      const { course } = await api(courseId ? `/courses/${courseId}` : '/courses', { method: courseId ? 'PATCH' : 'POST', body: JSON.stringify(values) });
+      if (!courseId) {
+        let id = draftId;
+        if (!id) {
+          const { course } = await api('/courses', {
+            method: 'POST',
+            body: JSON.stringify({ title: values.title, description: values.description, published: false }),
+          });
+          id = course.id;
+          setDraftId(id);
+        }
+        if (coverFile) await uploadCourseCover(id, coverFile);
+        await api(`/courses/${id}`, { method: 'PATCH', body: JSON.stringify(values) });
+        navigate(`/docente/cursos/${id}`);
+        return;
+      }
+      if (coverFile) await uploadCourseCover(courseId, coverFile);
+      const { course } = await api(`/courses/${courseId}`, { method: 'PATCH', body: JSON.stringify(values) });
       navigate(`/docente/cursos/${course.id}`);
     } catch (cause) { setError(cause.message); }
     finally { setBusy(false); }
@@ -126,6 +190,45 @@ export function CourseEditorPage() {
 
                 <div className="editor-card">
                   <div className="editor-card-head">
+                    <span className="editor-card-icon editor-card-icon-blue" aria-hidden="true"><ImagePlus size={18} strokeWidth={1.9} /></span>
+                    <div className="editor-card-headtext">
+                      <h2 className="editor-card-title">Portada del curso</h2>
+                      <p className="editor-card-sub">La imagen que verán los estudiantes en el catálogo.</p>
+                    </div>
+                  </div>
+                  <div className="editor-card-body">
+                    <div className="cover-field">
+                      <div className="cover-preview">
+                        {preview ? (
+                          <img src={preview} alt="Vista previa de la portada" className="cover-preview-img" />
+                        ) : (
+                          <span className="cover-placeholder">
+                            <ImagePlus size={28} strokeWidth={1.6} aria-hidden="true" />
+                            <span>Sin portada</span>
+                          </span>
+                        )}
+                      </div>
+                      <div className="cover-upload-row">
+                        <label className="cover-upload-button">
+                          <ImagePlus size={16} aria-hidden="true" />
+                          {preview ? 'Cambiar portada' : 'Añadir portada'}
+                          <input
+                            type="file"
+                            accept={COVER_TYPES.join(',')}
+                            onChange={chooseCover}
+                            className="sr-only"
+                            disabled={busy}
+                          />
+                        </label>
+                        <span className="cover-help">JPG, PNG o WebP · máximo 2 MB · proporción 16:9</span>
+                      </div>
+                      {coverError ? <p className="cover-error" role="alert">{coverError}</p> : null}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="editor-card">
+                  <div className="editor-card-head">
                     <span className="editor-card-icon editor-card-icon-blue" aria-hidden="true"><Eye size={18} strokeWidth={1.9} /></span>
                     <div className="editor-card-headtext">
                       <h2 className="editor-card-title">Visibilidad</h2>
@@ -146,9 +249,11 @@ export function CourseEditorPage() {
                       <span className="editor-switch-text">
                         <span className="editor-switch-title">Curso publicado</span>
                         <span className="editor-switch-desc">
-                          {values.published
-                            ? 'Visible para los estudiantes. Puedes despublicarlo cuando quieras.'
-                            : 'Queda como borrador y no será visible hasta que lo publiques.'}
+                          {needsCover
+                            ? 'Añade una portada para poder publicar el curso.'
+                            : values.published
+                              ? 'Visible para los estudiantes. Puedes despublicarlo cuando quieras.'
+                              : 'Queda como borrador y no será visible hasta que lo publiques.'}
                         </span>
                       </span>
                     </label>
@@ -175,9 +280,11 @@ export function CourseEditorPage() {
                     {values.published ? 'Publicado' : 'Borrador'}
                   </StatusBadge>
                   <p className="editor-status-text">
-                    {values.published
-                      ? 'Los estudiantes encontrarán este curso en el catálogo.'
-                      : 'El curso no aparecerá en el catálogo hasta que lo publiques.'}
+                    {needsCover
+                      ? 'Añade una portada para publicar el curso.'
+                      : values.published
+                        ? 'Los estudiantes encontrarán este curso en el catálogo.'
+                        : 'El curso no aparecerá en el catálogo hasta que lo publiques.'}
                   </p>
                 </div>
 
@@ -186,6 +293,7 @@ export function CourseEditorPage() {
                   <ul className="editor-tips-list">
                     <li>Usa un título claro y específico.</li>
                     <li>Resume el enfoque en la descripción.</li>
+                    <li>Elige una portada que identifique el curso.</li>
                     <li>Publica cuando el contenido esté listo.</li>
                   </ul>
                 </div>

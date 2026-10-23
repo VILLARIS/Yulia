@@ -1,15 +1,21 @@
-import { useEffect } from 'react';
-import { ArrowRight, BookOpen, Check, Clock, FlaskConical, GraduationCap, Leaf, MessageCircle, Play, RotateCcw, Send } from 'lucide-react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useEffect, useState } from 'react';
+import { ArrowRight, BookOpen, CalendarDays, Check, GraduationCap, Leaf, MessageCircle, Play, RotateCcw, Send } from 'lucide-react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { Button } from '../components/ui/Button';
 import heroBackground from '../assets/yulia/home/heroBackground.png';
 import studentImage from '../assets/yulia/home/studentImage.png';
 import teacherImage from '../assets/yulia/home/teacherImage.png';
+import casosBackground from '../assets/yulia/home/fondo_casos_simulaciones.png';
+import cursosBackground from '../assets/yulia/home/fondo_cursos.png';
+import videosBackground from '../assets/yulia/home/fondo_videos.png';
+import aprendizajeBackground from '../assets/yulia/home/fondo_aprendizaje_continuo.png';
 import yuliaAvatar from '../assets/yulia/avatar-yulia.png';
+import { api } from './api';
 import { useAuth } from './AuthContext';
+import { youtubeThumbnail } from './youtube';
 
 const studentSteps = ['Crea tu cuenta', 'Inscríbete en un curso', 'Entra a una simulación', 'Conversa con el tutor IA'];
-const teacherSteps = ['Crea un curso', 'Diseña simulaciones', 'Publica videos cortos', 'Acompaña el progreso'];
+const teacherSteps = ['Crea un curso', 'Diseña simulaciones', 'Publica videos educativos', 'Acompaña el progreso'];
 
 const teacherBenefits = ['Crear cursos', 'Diseñar simulaciones', 'Compartir videos', 'Revisar participación y progreso'];
 
@@ -25,18 +31,49 @@ const pathTones = ['home-path-student', 'home-path-teacher'];
 const reelTones = ['home-reel-green', 'home-reel-blue', 'home-reel-ivory'];
 
 
-const videos = [
-  { title: '¿Qué son los macronutrientes?', duration: '3:24', tone: 'green', icon: BookOpen },
-  { title: 'Cómo leer una etiqueta nutricional', duration: '4:10', tone: 'blue', icon: FlaskConical },
-  { title: 'Vitaminas hidrosolubles y liposolubles', duration: '5:02', tone: 'ivory', icon: Leaf },
-  { title: 'Triglicéridos: lo esencial', duration: '2:48', tone: 'green', icon: MessageCircle },
-];
-
 const conversation = [
   { role: 'tutor', text: 'Hola, soy Yulia. Vamos con un caso: un paciente llega con fatiga y palidez. ¿Qué analizarías primero?' },
   { role: 'student', text: 'Revisaría sus niveles de hierro y de hemoglobina.' },
   { role: 'tutor', text: 'Buen enfoque. ¿Por qué el hierro es clave para la hemoglobina?' },
 ];
+
+const dateFormatter = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
+
+function formatDate(value) {
+  if (!value) return '';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '' : dateFormatter.format(date);
+}
+
+function HomeReel({ video, index }) {
+  const [failed, setFailed] = useState(false);
+  const thumbnail = youtubeThumbnail(video.youtubeVideoId);
+  const date = formatDate(video.createdAt);
+  const tone = reelTones[index % reelTones.length];
+
+  return (
+    <li>
+      <Link to={`/videos/${video.id}`} className="home-reel">
+        <div className={`home-reel-thumb ${tone}`}>
+          {thumbnail && !failed ? (
+            <img
+              src={thumbnail}
+              alt=""
+              loading="lazy"
+              className="home-reel-img"
+              onError={() => setFailed(true)}
+            />
+          ) : (
+            <Play size={36} strokeWidth={1.25} aria-hidden="true" className="home-reel-mark opacity-30" />
+          )}
+          <span className="home-reel-play"><Play size={16} aria-hidden="true" className="translate-x-px" /></span>
+        </div>
+        <h3 className="home-reel-title line-clamp-2">{video.title}</h3>
+        {date ? <p className="home-reel-meta"><CalendarDays size={13} aria-hidden="true" />{date}</p> : null}
+      </Link>
+    </li>
+  );
+}
 
 function SectionHeading({ eyebrow, title, description }) {
   return (
@@ -78,6 +115,24 @@ export function HomePage() {
   const location = useLocation();
   const navigate = useNavigate();
   const coursePath = user ? user.role === 'teacher' ? '/docente' : '/estudiante' : '/acceso';
+  const [homeVideos, setHomeVideos] = useState([]);
+  const [videosLoading, setVideosLoading] = useState(true);
+  const [videosError, setVideosError] = useState('');
+
+  useEffect(() => {
+    let active = true;
+    api('/videos?published=true')
+      .then(({ videos: data }) => {
+        if (active) setHomeVideos(data.slice(0, 4));
+      })
+      .catch(() => {
+        if (active) setVideosError('No se pudieron cargar los videos.');
+      })
+      .finally(() => {
+        if (active) setVideosLoading(false);
+      });
+    return () => { active = false; };
+  }, []);
 
   useEffect(() => {
     if (location.hash === '#acerca') {
@@ -121,26 +176,26 @@ export function HomePage() {
           description="Combina cursos, casos, simulaciones conversacionales y contenido breve en una experiencia pensada para aplicar conocimientos."
         />
         <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-12 lg:grid-rows-2">
-          <article className="home-bento home-bento-feature md:col-span-2 lg:col-span-7 lg:row-span-2">
+          <article className="home-bento home-bento-feature md:col-span-2 lg:col-span-7 lg:row-span-2" style={{ backgroundImage: `url(${casosBackground})` }}>
             <span className="home-bento-index" aria-hidden="true">01</span>
             <span className="home-bento-icon home-bento-icon-green"><MessageCircle size={20} aria-hidden="true" /></span>
             <h3 className="home-bento-title">Casos y simulaciones</h3>
             <p className="home-bento-text">Analiza situaciones reales y desarrolla tu razonamiento paso a paso.</p>
             <p className="home-bento-note">Preguntas, pistas y retroalimentación en cada decisión.</p>
           </article>
-          <article className="home-bento home-bento-courses lg:col-span-5">
+          <article className="home-bento home-bento-courses lg:col-span-5" style={{ backgroundImage: `url(${cursosBackground})` }}>
             <span className="home-bento-index" aria-hidden="true">02</span>
             <span className="home-bento-icon home-bento-icon-blue"><BookOpen size={20} aria-hidden="true" /></span>
             <h3 className="home-bento-title">Cursos creados por docentes</h3>
             <p className="home-bento-text">Contenido estructurado y contextualizado.</p>
           </article>
-          <article className="home-bento home-bento-videos lg:col-span-5">
+          <article className="home-bento home-bento-videos lg:col-span-5" style={{ backgroundImage: `url(${videosBackground})` }}>
             <span className="home-bento-index" aria-hidden="true">03</span>
             <span className="home-bento-icon home-bento-icon-green"><Play size={20} aria-hidden="true" /></span>
             <h3 className="home-bento-title">Videos cortos</h3>
             <p className="home-bento-text">Conceptos clave explicados en minutos.</p>
           </article>
-          <article className="home-bento home-bento-wide md:col-span-2 lg:col-span-12">
+          <article className="home-bento home-bento-wide md:col-span-2 lg:col-span-12" style={{ backgroundImage: `url(${aprendizajeBackground})` }}>
             <span className="home-bento-index" aria-hidden="true">04</span>
             <span className="home-bento-icon home-bento-icon-blue"><RotateCcw size={20} aria-hidden="true" /></span>
             <div>
@@ -184,24 +239,34 @@ export function HomePage() {
     <section className="home-section home-section-mint" aria-labelledby="videos-titulo">
       <div className="site-container">
         <SectionHeading
-          eyebrow="Aprende en minutos"
-          title="Videos cortos para reforzar conceptos"
-          description="Contenido breve creado por la docente para aprender, repasar y descubrir nuevos temas."
+          eyebrow="Aprende a tu ritmo"
+          title="Videos educativos para reforzar conceptos"
+          description="Contenido creado por la docente para aprender, repasar y descubrir nuevos temas."
         />
-        <ul className="home-reels">
-          {videos.map(({ title, duration, tone, icon: Icon }) => (
-            <li key={title}>
-              <article className="home-reel">
-                <div className={`home-reel-thumb home-reel-${tone}`}>
-                  <Icon size={44} strokeWidth={1.25} aria-hidden="true" className="home-reel-mark opacity-30" />
-                  <span className="home-reel-play"><Play size={16} aria-hidden="true" className="translate-x-px" /></span>
-                </div>
-                <h3 className="home-reel-title">{title}</h3>
-                <p className="home-reel-meta"><Clock size={13} aria-hidden="true" />{duration}</p>
-              </article>
-            </li>
-          ))}
-        </ul>
+        {videosLoading ? (
+          <>
+            <p className="sr-only" role="status">Cargando videos…</p>
+            <ul className="home-reels" aria-hidden="true">
+              {[0, 1, 2, 3].map((index) => (
+                <li key={index}><div className="home-reel-thumb home-reel-skeleton" /></li>
+              ))}
+            </ul>
+          </>
+        ) : null}
+        {!videosLoading && videosError ? <p className="home-reels-status">{videosError}</p> : null}
+        {!videosLoading && !videosError && homeVideos.length === 0 ? (
+          <div className="home-reels-empty">
+            <p>Todavía no hay videos publicados.</p>
+            <Button to="/videos" variant="secondary">Ir a Videos</Button>
+          </div>
+        ) : null}
+        {!videosLoading && !videosError && homeVideos.length > 0 ? (
+          <ul className="home-reels">
+            {homeVideos.map((video, index) => (
+              <HomeReel key={video.id} video={video} index={index} />
+            ))}
+          </ul>
+        ) : null}
         <div className="mt-9 text-center">
           <Button to="/videos" size="lg" icon={ArrowRight} iconPosition="end" className="home-cta-green home-arrow-cta">Ver todos los videos</Button>
         </div>

@@ -11,6 +11,8 @@ import { MvpShell } from './mvp/MvpShell';
 import { RouteGuard } from './mvp/RouteGuard';
 import { SimulationDetailPage } from './mvp/SimulationDetailPage';
 import { SimulationEditorPage } from './mvp/SimulationEditorPage';
+import { VideoDetailPage } from './mvp/VideoDetailPage';
+import { VideoEditorPage } from './mvp/VideoEditorPage';
 import { VideosPage } from './mvp/VideosPage';
 import { NotFoundPage } from './pages/NotFoundPage';
 
@@ -23,6 +25,7 @@ export function App() {
       <Route path="/registro" element={<AuthPage mode="register" />} />
       <Route path="/cursos" element={<CoursesPage />} />
       <Route path="/videos" element={<VideosPage />} />
+      <Route path="/videos/:videoId" element={<VideoDetailPage />} />
       <Route element={<RouteGuard role="teacher" />}>
         <Route path="/docente" element={<CoursesPage />} />
         <Route path="/docente/cursos/nuevo" element={<CourseEditorPage />} />
@@ -30,6 +33,8 @@ export function App() {
         <Route path="/docente/cursos/:courseId/editar" element={<CourseEditorPage />} />
         <Route path="/docente/cursos/:courseId/simulaciones/nueva" element={<SimulationEditorPage />} />
         <Route path="/docente/simulaciones/:simulationId/editar" element={<SimulationEditorPage />} />
+        <Route path="/docente/videos/nuevo" element={<VideoEditorPage />} />
+        <Route path="/docente/videos/:videoId/editar" element={<VideoEditorPage />} />
       </Route>
       <Route element={<RouteGuard role="student" />}>
         <Route path="/estudiante" element={<CoursesPage />} />

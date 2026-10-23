@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import { createApp } from '../src/app.js';
 import { query } from '../src/db.js';
+import { createTestTeacher } from '../test-support/helpers.js';
 
 test('flujo persistente docente → estudiante y permisos', { skip: !process.env.DATABASE_URL }, async () => {
   const marker = randomUUID();
@@ -23,17 +24,23 @@ test('flujo persistente docente → estudiante y permisos', { skip: !process.env
   await start();
   try {
     const password = 'Password123!';
-    const teacher = await call('/auth/register', 'POST', { name: 'Docente MVP', email: `teacher-${marker}@example.test`, password, role: 'teacher' });
-    assert.equal(teacher.status, 201);
-    created.users.push(teacher.data.user.id);
+    const teacherUser = await createTestTeacher({ name: 'Docente MVP', email: `teacher-${marker}@example.test`, password });
+    created.users.push(teacherUser.id);
+    const teacher = await call('/auth/login', 'POST', { email: teacherUser.email, password });
+    assert.equal(teacher.status, 200);
     const teacherCookie = teacher.cookie;
     assert.equal((await call('/auth/me', 'GET', null, teacherCookie)).data.user.role, 'teacher');
-    const hash = await query('SELECT password_hash FROM users WHERE id = $1', [teacher.data.user.id]);
+    const hash = await query('SELECT password_hash FROM users WHERE id = $1', [teacherUser.id]);
     assert.notEqual(hash.rows[0].password_hash, password);
 
-    const course = await call('/courses', 'POST', { title: 'Curso de prueba MVP', description: 'Curso persistente', published: true }, teacherCookie);
+    assert.equal((await call('/courses', 'POST', { title: 'Curso sin portada', description: '', published: true }, teacherCookie)).status, 400);
+    const course = await call('/courses', 'POST', { title: 'Curso de prueba MVP', description: 'Curso persistente', published: false }, teacherCookie);
     assert.equal(course.status, 201);
     created.course = course.data.course.id;
+    await query('UPDATE courses SET cover_image_path = $1 WHERE id = $2', [`courses/${created.course}/${randomUUID()}.png`, created.course]);
+    const coursePublication = await call(`/courses/${created.course}`, 'PATCH', { published: true }, teacherCookie);
+    assert.equal(coursePublication.status, 200);
+    assert.equal(coursePublication.data.course.published, true);
     const simulation = await call(`/courses/${created.course}/simulations`, 'POST', { title: 'Simulación de prueba', scenario: 'Escenario de diez caracteres o más.', objective: 'Razonar el caso', tutorInstructions: 'Guiar mediante preguntas.', published: false }, teacherCookie);
     assert.equal(simulation.status, 201);
     created.simulation = simulation.data.simulation.id;
@@ -41,8 +48,10 @@ test('flujo persistente docente → estudiante y permisos', { skip: !process.env
     assert.equal(publication.status, 200);
     assert.equal(publication.data.simulation.published, true);
 
-    const other = await call('/auth/register', 'POST', { name: 'Otra docente', email: `other-${marker}@example.test`, password, role: 'teacher' });
-    created.users.push(other.data.user.id);
+    const otherUser = await createTestTeacher({ name: 'Otra docente', email: `other-${marker}@example.test`, password });
+    created.users.push(otherUser.id);
+    const other = await call('/auth/login', 'POST', { email: otherUser.email, password });
+    assert.equal(other.status, 200);
     assert.equal((await call(`/courses/${created.course}`, 'PATCH', { title: 'Intrusión' }, other.cookie)).status, 404);
     assert.equal((await call(`/simulations/${created.simulation}`, 'PATCH', { title: 'Intrusión' }, other.cookie)).status, 404);
 
@@ -114,17 +123,28 @@ function newHarness() {
 }
 
 async function registerUser(harness, role, label, marker) {
-  const response = await harness.call('/auth/register', 'POST', { name: label, email: `${label}-${marker}@example.test`, password: PASSWORD, role });
+  const email = `${label}-${marker}@example.test`;
+  if (role === 'teacher') {
+    const user = await createTestTeacher({ name: label, email, password: PASSWORD });
+    harness.users.push(user.id);
+    const login = await harness.call('/auth/login', 'POST', { email, password: PASSWORD });
+    assert.equal(login.status, 200);
+    return login;
+  }
+  const response = await harness.call('/auth/register', 'POST', { name: label, email, password: PASSWORD, role });
   assert.equal(response.status, 201);
   harness.users.push(response.data.user.id);
   return response;
 }
 
 async function createCourse(harness, cookie, title) {
-  const response = await harness.call('/courses', 'POST', { title, description: '', published: true }, cookie);
+  const response = await harness.call('/courses', 'POST', { title, description: '', published: false }, cookie);
   assert.equal(response.status, 201);
-  harness.courses.push(response.data.course.id);
-  return response.data.course.id;
+  const courseId = response.data.course.id;
+  harness.courses.push(courseId);
+  await query('UPDATE courses SET cover_image_path = $1 WHERE id = $2', [`courses/${courseId}/${randomUUID()}.png`, courseId]);
+  assert.equal((await harness.call(`/courses/${courseId}`, 'PATCH', { published: true }, cookie)).status, 200);
+  return courseId;
 }
 
 async function createSimulation(harness, cookie, courseId, title) {

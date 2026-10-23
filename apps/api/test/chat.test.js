@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto';
 import { test } from 'node:test';
 import { createApp } from '../src/app.js';
 import { query } from '../src/db.js';
+import { createTestTeacher } from '../test-support/helpers.js';
 
 test('chat persistente, contexto y aislamiento entre estudiantes', { skip: !process.env.DATABASE_URL }, async () => {
   const marker = randomUUID();
@@ -25,14 +26,24 @@ test('chat persistente, contexto y aislamiento entre estudiantes', { skip: !proc
   const userIds = [];
   try {
     const register = async (role, label) => {
-      const response = await call('/auth/register', 'POST', { name: label, email: `${label}-${marker}@example.test`, password: 'Password123!', role });
+      const email = `${label}-${marker}@example.test`;
+      if (role === 'teacher') {
+        const user = await createTestTeacher({ name: label, email, password: 'Password123!' });
+        userIds.push(user.id);
+        const login = await call('/auth/login', 'POST', { email, password: 'Password123!' });
+        assert.equal(login.status, 200);
+        return login;
+      }
+      const response = await call('/auth/register', 'POST', { name: label, email, password: 'Password123!', role });
       assert.equal(response.status, 201);
       userIds.push(response.data.user.id);
       return response;
     };
     const teacher = await register('teacher', 'Docente');
-    const course = await call('/courses', 'POST', { title: 'Curso de chat', description: '', published: true }, teacher.cookie);
+    const course = await call('/courses', 'POST', { title: 'Curso de chat', description: '', published: false }, teacher.cookie);
     courseId = course.data.course.id;
+    await query('UPDATE courses SET cover_image_path = $1 WHERE id = $2', [`courses/${courseId}/${randomUUID()}.png`, courseId]);
+    assert.equal((await call(`/courses/${courseId}`, 'PATCH', { published: true }, teacher.cookie)).status, 200);
     const simulation = await call(`/courses/${courseId}/simulations`, 'POST', { title: 'Caso real', scenario: 'Escenario nutricional de prueba.', objective: 'Razonar el caso', tutorInstructions: 'Pregunta paso a paso.', published: true }, teacher.cookie);
     simulationId = simulation.data.simulation.id;
     const student = await register('student', 'Estudiante');
