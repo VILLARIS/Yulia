@@ -2665,6 +2665,14 @@
 
   .sim-key-form { @apply mt-2.5 space-y-2.5; }
 
+  .sim-key-help { @apply text-[11px] leading-relaxed text-[#3a5a3a]; }
+
+  .sim-key-get {
+    @apply inline-flex items-center gap-1.5 rounded-lg border border-[#173b6c] bg-[#173b6c] px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-[#0f2a4e] hover:border-[#0f2a4e];
+  }
+
+  .sim-key-hint { @apply text-[11px] leading-relaxed text-[#5c6f82]; }
+
   .sim-key-actions { @apply flex flex-wrap items-center gap-2; }
 
   .sim-key-connected { @apply flex flex-wrap items-center justify-between gap-2; }

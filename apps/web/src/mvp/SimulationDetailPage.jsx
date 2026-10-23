@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import {
-  ArrowLeft, CheckCircle2, ChevronDown, ClipboardList, Download, KeyRound,
+  ArrowLeft, CheckCircle2, ChevronDown, ClipboardList, Download, ExternalLink, KeyRound,
   Lightbulb, MessageCircle, Send, Sparkles, Target, UserRound,
 } from 'lucide-react';
 import { Button } from '../components/ui/Button';
@@ -288,6 +288,20 @@ export function SimulationDetailPage() {
                       <p className="sim-key-sub">Tu clave de Gemini, solo en esta pestaña.</p>
                     </div>
                   </div>
+                  <p className="sim-key-help">
+                    Necesitas una clave de Gemini para conversar con Yulia. Puedes obtenerla desde Google AI Studio.
+                  </p>
+                  <a
+                    href="https://aistudio.google.com/api-keys"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="sim-key-get"
+                  >
+                    <ExternalLink size={14} aria-hidden="true" /> Obtener clave de Gemini
+                  </a>
+                  <p className="sim-key-hint">
+                    Una vez creada, copia tu clave, vuelve a Yulia y pégala aquí.
+                  </p>
                   <form onSubmit={testKey} className="sim-key-form">
                     <TextField
                       label="API key de Gemini"
